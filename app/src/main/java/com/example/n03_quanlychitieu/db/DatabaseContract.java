@@ -16,13 +16,13 @@ public class DatabaseContract {
         public static final String COLUMN_CREATED_AT = "created_at";
         public static final String CREATE_TABLE =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
-                        COLUMN_USER_ID + " TEXT PRIMARY KEY," +
-                        COLUMN_USERNAME + " TEXT NOT NULL," +
-                        COLUMN_EMAIL + " TEXT NOT NULL," +
-                        COLUMN_PASSWORD + " TEXT NOT NULL," +
-                        COLUMN_AVATAR_URL + " TEXT," +
+                        COLUMN_USER_ID + " TEXT PRIMARY KEY, " +
+                        COLUMN_USERNAME + " TEXT NOT NULL, " +
+                        COLUMN_EMAIL + " TEXT NOT NULL, " +
+                        COLUMN_PASSWORD + " TEXT NOT NULL, " +
+                        COLUMN_AVATAR_URL + " TEXT, " +
                         COLUMN_CREATED_AT + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                        ");";
+                        ")";
     }
     public static class Categories {
         public static final String TABLE_NAME = "categories";
@@ -33,12 +33,12 @@ public class DatabaseContract {
         public static final String COLUMN_TYPE = "type";
         public static final String CREATE_TABLE =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
-                        COLUMN_CATEGORY_ID + " TEXT PRIMARY KEY," +
-                        COLUMN_NAME + " TEXT NOT NULL," +
-                        COLUMN_ICON + " TEXT," +
-                        COLUMN_COLOR + " TEXT," +
+                        COLUMN_CATEGORY_ID + " TEXT PRIMARY KEY, " +
+                        COLUMN_NAME + " TEXT NOT NULL, " +
+                        COLUMN_ICON + " TEXT, " +
+                        COLUMN_COLOR + " TEXT, " +
                         COLUMN_TYPE + " TEXT NOT NULL CHECK(" + COLUMN_TYPE + " IN ('income','expense'))" +
-                        ");";
+                        ")";
     }
     public static class Notifications {
         public static final String TABLE_NAME = "notifications";
@@ -50,15 +50,15 @@ public class DatabaseContract {
         public static final String COLUMN_USER_ID = "user_id";
         public static final String CREATE_TABLE =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
-                        COLUMN_NOTIFICATION_ID + " TEXT PRIMARY KEY," +
-                        COLUMN_CONTENT + " TEXT NOT NULL," +
-                        COLUMN_IS_READ + " BOOLEAN NOT NULL DEFAULT 0," +
-                        COLUMN_CREATE_AT + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
-                        COLUMN_NOTIFICATION_TYPE + " TEXT NOT NULL CHECK(" + COLUMN_NOTIFICATION_TYPE + " IN ('warn','info'))" +
-                        COLUMN_USER_ID + " TEXT NOT NULL," +
+                        COLUMN_NOTIFICATION_ID + " TEXT PRIMARY KEY, " +
+                        COLUMN_CONTENT + " TEXT NOT NULL, " +
+                        COLUMN_IS_READ + " BOOLEAN NOT NULL DEFAULT 0, " +
+                        COLUMN_CREATE_AT + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                        COLUMN_NOTIFICATION_TYPE + " TEXT NOT NULL CHECK(" + COLUMN_NOTIFICATION_TYPE + " IN ('warn','info')), " +
+                        COLUMN_USER_ID + " TEXT NOT NULL, " +
                         "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " +
                         Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE" +
-                        ");";
+                        ")";
     }
     public static class Budgets {
         public static final String TABLE_NAME = "budgets";
@@ -71,18 +71,18 @@ public class DatabaseContract {
         public static final String COLUMN_CATEGORY_ID = "category_id";
         public static final String CREATE_TABLE =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
-                        COLUMN_BUDGET_ID + " TEXT PRIMARY KEY," +
-                        COLUMN_AMOUNT + " REAL NOT NULL," +
-                        COLUMN_START_DATE + " DATE NOT NULL," +
-                        COLUMN_END_DATE + " DATE NOT NULL," +
-                        COLUMN_DESCRIPTION + " TEXT," +
-                        COLUMN_USER_ID + " TEXT NOT NULL," +
-                        COLUMN_CATEGORY_ID + " TEXT NOT NULL," +
+                        COLUMN_BUDGET_ID + " TEXT PRIMARY KEY, " +
+                        COLUMN_AMOUNT + " REAL NOT NULL, " +
+                        COLUMN_START_DATE + " DATE NOT NULL, " +
+                        COLUMN_END_DATE + " DATE NOT NULL, " +
+                        COLUMN_DESCRIPTION + " TEXT, " +
+                        COLUMN_USER_ID + " TEXT NOT NULL, " +
+                        COLUMN_CATEGORY_ID + " TEXT NOT NULL, " +
                         "FOREIGN KEY (" + COLUMN_USER_ID + ") REFERENCES " +
-                        Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE," +
+                        Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE, " +
                         "FOREIGN KEY (" + COLUMN_CATEGORY_ID + ") REFERENCES " +
-                        Categories.TABLE_NAME + "(" + Categories.COLUMN_CATEGORY_ID + ") ON DELETE SET NULL" +
-                        ");";
+                        Categories.TABLE_NAME + "(" + Categories.COLUMN_CATEGORY_ID + ") ON DELETE CASCADE" +
+                        ")";
     }
     public static class Incomes {
         public static final String TABLE_NAME = "incomes";
@@ -94,17 +94,17 @@ public class DatabaseContract {
         public static final String COLUMN_CATEGORY_ID = "category_id";
         public static final String CREATE_TABLE =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
-                        COLUMN_INCOME_ID + " TEXT PRIMARY KEY," +
-                        COLUMN_AMOUNT + " REAL NOT NULL," +
-                        COLUMN_DESCRIPTION + " TEXT," +
-                        COLUMN_CREATE_AT + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
-                        COLUMN_USER_ID + " TEXT NOT NULL," +
-                        COLUMN_CATEGORY_ID + " TEXT NOT NULL," +
+                        COLUMN_INCOME_ID + " TEXT PRIMARY KEY, " +
+                        COLUMN_AMOUNT + " REAL NOT NULL, " +
+                        COLUMN_DESCRIPTION + " TEXT, " +
+                        COLUMN_CREATE_AT + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                        COLUMN_USER_ID + " TEXT NOT NULL, " +
+                        COLUMN_CATEGORY_ID + " TEXT NOT NULL, " +
                         "FOREIGN KEY (" + COLUMN_USER_ID + ") REFERENCES " +
-                        Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE," +
+                        Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE, " +
                         "FOREIGN KEY (" + COLUMN_CATEGORY_ID + ") REFERENCES " +
-                        Categories.TABLE_NAME + "(" + Categories.COLUMN_CATEGORY_ID + ") ON DELETE SET NULL" +
-                        ");";
+                        Categories.TABLE_NAME + "(" + Categories.COLUMN_CATEGORY_ID + ") ON DELETE CASCADE" +
+                        ")";
     }
     public static class Expenses {
         public static final String TABLE_NAME = "expenses";
@@ -117,19 +117,19 @@ public class DatabaseContract {
         public static final String COLUMN_BUDGET_ID = "budget_id";
         public static final String CREATE_TABLE =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
-                        COLUMN_EXPENSE_ID + " TEXT PRIMARY KEY," +
-                        COLUMN_AMOUNT + " REAL NOT NULL," +
-                        COLUMN_DESCRIPTION + " TEXT," +
-                        COLUMN_CREATE_AT + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
-                        COLUMN_USER_ID + " TEXT NOT NULL," +
-                        COLUMN_CATEGORY_ID + " TEXT NOT NULL," +
+                        COLUMN_EXPENSE_ID + " TEXT PRIMARY KEY, " +
+                        COLUMN_AMOUNT + " REAL NOT NULL, " +
+                        COLUMN_DESCRIPTION + " TEXT, " +
+                        COLUMN_CREATE_AT + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                        COLUMN_USER_ID + " TEXT NOT NULL, " +
+                        COLUMN_CATEGORY_ID + " TEXT NOT NULL, " +
                         COLUMN_BUDGET_ID + " TEXT NOT NULL, " +
                         "FOREIGN KEY (" + COLUMN_USER_ID + ") REFERENCES " +
-                        Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE," +
+                        Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE, " +
                         "FOREIGN KEY (" + COLUMN_CATEGORY_ID + ") REFERENCES " +
-                        Categories.TABLE_NAME + "(" + Categories.COLUMN_CATEGORY_ID + ") ON DELETE SET NULL," +
+                        Categories.TABLE_NAME + "(" + Categories.COLUMN_CATEGORY_ID + ") ON DELETE CASCADE, " +
                         "FOREIGN KEY (" + COLUMN_BUDGET_ID + ") REFERENCES " +
-                        Budgets.TABLE_NAME + "(" + Budgets.COLUMN_BUDGET_ID + ") ON DELETE SET NULL" +
-                        ");";
+                        Budgets.TABLE_NAME + "(" + Budgets.COLUMN_BUDGET_ID + ") ON DELETE CASCADE" +
+                        ")";
     }
 }
