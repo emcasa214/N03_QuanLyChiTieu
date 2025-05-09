@@ -3,37 +3,84 @@ package com.example.n03_quanlychitieu.ui.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
+
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
+import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
+
+    DrawerLayout drawerLayout;
+    Toolbar toolbar;
+    NavigationView navView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button btnOpenCategory = findViewById(R.id.btnOpenCategory);
-        btnOpenCategory.setOnClickListener(new View.OnClickListener() {
+        khoitao();
+        toggle();
+        menuClick();
+        onBackPressed();
+    }
+
+    /**
+     * Khởi tạo (khoitao) – ánh xạ các view từ XML sang Java và set Toolbar làm ActionBar
+     */
+    public void khoitao(){
+        drawerLayout = findViewById(R.id.drawmain);
+        toolbar = findViewById(R.id.toolbar);
+        navView = findViewById(R.id.navigation_view);
+        setSupportActionBar(toolbar);
+    }
+    /**
+     * toggle() – thêm nút “hamburger” - nút 3 gạch ngang ngang í :)), vào toolbar để điều khiển đóng/mở drawer
+     */
+    public void toggle(){
+        // Thêm nút toggle (3 gạch)
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+    }
+    /**
+     * menuClick() – xử lý sự kiện khi người dùng chọn một mục trong NavigationView, làm nút nào thì xử lý nút đó vô đây
+     */
+    public void menuClick(){
+        navView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onClick(View v) {
-                try {
-                    Log.d(TAG, "Attempting to start AddCategoryActivity");
-                    Intent intent = new Intent(MainActivity.this, AddCategoryActivity.class);
-                    startActivity(intent);
-                    Log.d(TAG, "Successfully started AddCategoryActivity");
-                } catch (Exception e) {
-                    Log.e(TAG, "Error starting AddCategoryActivity", e);
-                    Toast.makeText(MainActivity.this, "Lỗi khi mở màn hình quản lý danh mục", Toast.LENGTH_SHORT).show();
-                }
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return true;
             }
         });
     }
+    /**
+     * onBackPressed() – ghi đè để nếu drawer đang mở thì đóng drawer,
+     *                ngược lại mới thực hiện hành vi back mặc định
+     */
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
 }

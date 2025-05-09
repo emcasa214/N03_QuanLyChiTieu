@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:title="Trang Chủ"
+        android:icon="@android:drawable/ic_menu_view" />
+    <item
+        android:id="@+id/nav_view_categories"
+        android:title="Xem Danh Mục"
+        android:icon="@android:drawable/ic_menu_preferences" />
+    <item
+        android:id="@+id/nav_view_income"
+        android:title="Xem Thu Nhập"
+        android:icon="@android:drawable/ic_menu_share" />
+    <item
+        android:id="@+id/nav_view_expense"
+        android:title="Xem Thu Chi"
+        android:icon="@android:drawable/ic_menu_send" />
+    <item
+        android:id="@+id/nav_budget"
+        android:title="Ngân Sách"
+        android:icon="@android:drawable/ic_menu_add" />
+    <item
+        android:id="@+id/nav_statistics"
+        android:title="Thống Kê"
+        android:icon="@android:drawable/ic_menu_agenda" />
+</menu>

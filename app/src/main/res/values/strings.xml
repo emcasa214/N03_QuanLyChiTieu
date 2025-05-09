@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">N03_QuanLyChiTieu</string>
+    <string name="navigation_drawer_open">Open Navigation</string>
+    <string name="navigation_drawer_close">Close Navigation</string>
 </resources>
