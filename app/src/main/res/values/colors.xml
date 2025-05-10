@@ -2,4 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+<!--    Customer color-->
+    <color name="pear">#d5f124</color>
+    <color name="lotion">#fdfbf7</color>
+    <color name="pink">#e9499f</color>
+    <color name="dark_green">#08262d</color>
+
 </resources>
