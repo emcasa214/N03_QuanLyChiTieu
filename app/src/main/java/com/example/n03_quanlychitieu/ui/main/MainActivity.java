@@ -78,11 +78,13 @@ public class MainActivity extends AppCompatActivity {
     private void handleNavigation(int itemId) {
         if (itemId == R.id.nav_home) {
             startActivity(new Intent(this, MainActivity.class));
-//        } else if (itemId == R.id.nav_settings) {
+        }
+//        else if (itemId == R.id.nav_settings) {
 //            startActivity(new Intent(this, SettingsActivity.class));
 //        } else if (itemId == R.id.nav_logout) {
 //            logout();
 //        }
+
     }
 
     /**
