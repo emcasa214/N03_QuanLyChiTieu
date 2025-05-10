@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="ExtraText">
+
+
+    <!-- AppBar with Toolbar (outside CardView to stretch full width) -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#673AB7"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+            <!-- Close button inside Toolbar -->
+            <ImageButton
+                android:id="@+id/btnClose"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Đóng"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:layout_gravity="end" />
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Layout popup -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/incomePopup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+        tools:layout_editor_absoluteY="80dp"
+        tools:ignore="MissingConstraints">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="0dp"
+            tools:ignore="MissingConstraints">
+
+            <!-- Tiêu đề -->
+            <TextView
+                android:id="@+id/tvHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:padding="12dp"
+                android:text="XEM THU NHẬP ĐẦU VÀO"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- Link thêm chi tiêu -->
+            <TextView
+                android:id="@+id/tvAddExpense"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:text="Thêm chi tiêu"
+                android:textColor="#0000EE"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvHeader" />
+
+            <!-- Bảng thu nhập (dạng TableLayout) -->
+            <TableLayout
+                android:id="@+id/tableIncome"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:stretchColumns="*"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvAddExpense">
+
+                <TableRow>
+                    <TextView
+                        android:background="#E0E0E0"
+                        android:padding="8dp"
+                        android:text="Số tiền"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:background="#E0E0E0"
+                        android:padding="8dp"
+                        android:text="Nguồn"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:background="#E0E0E0"
+                        android:padding="8dp"
+                        android:text="Thời gian"
+                        android:textStyle="bold" />
+                </TableRow>
+
+                <TableRow>
+                    <TextView
+                        android:padding="8dp"
+                        android:text="1.000.000" />
+
+                    <TextView
+                        android:padding="8dp"
+                        android:text="Làm thêm" />
+
+                    <TextView
+                        android:padding="8dp"
+                        android:text="12/4/2025" />
+                </TableRow>
+
+                <TableRow>
+                    <TextView
+                        android:padding="8dp"
+                        android:text="300.000" />
+
+                    <TextView
+                        android:padding="8dp"
+                        android:text="Mẫu ảnh" />
+
+                    <TextView
+                        android:padding="8dp"
+                        android:text="20/4/2025" />
+                </TableRow>
+            </TableLayout>
+
+            <!-- Phân trang kiểu mới -->
+            <LinearLayout
+                android:id="@+id/paginationLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tableIncome">
+
+                <!-- Previous page button -->
+                <ImageButton
+                    android:id="@+id/btnPagePrevious"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Trang trước"
+                    android:src="@android:drawable/ic_media_previous" />
+
+                <!-- Current page indicator -->
+                <TextView
+                    android:id="@+id/tvCurrentPage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:text="Trang 1"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <!-- Next page button -->
+                <ImageButton
+                    android:id="@+id/btnPageNext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Trang sau"
+                    android:src="@android:drawable/ic_media_next" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

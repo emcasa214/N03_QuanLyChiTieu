@@ -19,6 +19,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
 import com.google.android.material.navigation.NavigationView;
+import com.example.n03_quanlychitieu.ui.income.ViewIncomeActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         khoitao();
         toggle();
         menuClick();
-        onBackPressed();
+        //onBackPressed();
     }
 
     /**
@@ -78,6 +79,9 @@ public class MainActivity extends AppCompatActivity {
     private void handleNavigation(int itemId) {
         if (itemId == R.id.nav_home) {
             startActivity(new Intent(this, MainActivity.class));
+        }
+        else if (itemId == R.id.nav_view_income) { // Thêm xử lý cho "Xem thu nhập"
+            startActivity(new Intent(this, ViewIncomeActivity.class));
         }
 //        else if (itemId == R.id.nav_settings) {
 //            startActivity(new Intent(this, SettingsActivity.class));
