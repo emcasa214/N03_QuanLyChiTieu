@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:ignore="ExtraText">
 
+
     <!-- AppBar with Toolbar (outside CardView to stretch full width) -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
