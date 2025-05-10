@@ -23,9 +23,8 @@
         <activity
             android:name=".ui.sign.SignUp" />
         <activity android:name=".ui.sign.LogIn" />
-        <activity android:name=".ui.category.AddCategoryActivity" />
         <activity android:name=".ui.main.MainActivity" />
-            android:name=".ui.category.AddCategoryActivity" />
+        <activity android:name=".ui.category.AddCategoryActivity" />
         <activity
             android:name=".ui.income.ViewIncomeActivity"
             android:exported="false">
