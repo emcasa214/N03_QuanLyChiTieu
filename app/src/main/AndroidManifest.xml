@@ -22,6 +22,10 @@
         </activity>
         <activity
             android:name=".ui.category.AddCategoryActivity" />
+        <activity
+            android:name=".ui.income.ViewIncomeActivity"
+            android:exported="false">
+        </activity>
     </application>
 
 </manifest>
