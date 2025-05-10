@@ -59,17 +59,32 @@ public class MainActivity extends AppCompatActivity {
         toggle.syncState();
     }
     /**
-     * menuClick() – xử lý sự kiện khi người dùng chọn một mục trong NavigationView, làm nút nào thì xử lý nút đó vô đây
+     * menuClick() – Hàm gọi hàm xử lý sự kiện khi người dùng chọn một mục trong NavigationView
      */
     public void menuClick(){
         navView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 drawerLayout.closeDrawer(GravityCompat.START);
+                int id = item.getItemId();
+                handleNavigation(id);
                 return true;
             }
         });
     }
+    /**
+     * handleNavigation() – xử lý sự kiện khi người dùng chọn một mục trong NavigationView, làm nút nào thì xử lý nút đó vô đây
+     */
+    private void handleNavigation(int itemId) {
+        if (itemId == R.id.nav_home) {
+            startActivity(new Intent(this, MainActivity.class));
+//        } else if (itemId == R.id.nav_settings) {
+//            startActivity(new Intent(this, SettingsActivity.class));
+//        } else if (itemId == R.id.nav_logout) {
+//            logout();
+//        }
+    }
+
     /**
      * onBackPressed() – ghi đè để nếu drawer đang mở thì đóng drawer,
      *                ngược lại mới thực hiện hành vi back mặc định
