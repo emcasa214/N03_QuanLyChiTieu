@@ -117,6 +117,7 @@ public class LogIn extends AppCompatActivity {
                 btnLogin.setEnabled(true);
                 Toast.makeText(LogIn.this, "Login Error: " + errorMessage, Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(LogIn.this, BeginActivity.class));
+                finish();
             }
         });
     }
@@ -124,7 +125,6 @@ public class LogIn extends AppCompatActivity {
     protected void textSignup() {
         TextView signup = findViewById(R.id.changeSignup);
         Intent intent = new Intent(LogIn.this, SignUp.class);
-        BeginActivity begin = new BeginActivity();
         changeViewSignup(signup, intent);
     }
 

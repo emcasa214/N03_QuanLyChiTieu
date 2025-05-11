@@ -190,6 +190,7 @@ public class SignUp extends AppCompatActivity {
                 btnSignUp.setEnabled(true);
                 Toast.makeText(SignUp.this, "Login Error: " + errorMessage, Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(SignUp.this, BeginActivity.class));
+                finish();
             }
         });
     }

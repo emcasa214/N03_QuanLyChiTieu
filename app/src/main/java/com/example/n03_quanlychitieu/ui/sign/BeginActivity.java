@@ -24,8 +24,6 @@ public class BeginActivity extends AppCompatActivity {
     private LottieAnimationView animationView;
     private Button btnSignup, btnLogin;
     private View overlay;
-    private boolean isProcessing = false;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +39,6 @@ public class BeginActivity extends AppCompatActivity {
         gradientView();
         setupButtonListeners();
 
-//        btnSignup.setOnClickListener(v -> handleSignUp());
-//        btnLogin.setOnClickListener(v -> handleLogIn());
-
     }
 
     @Override
@@ -54,32 +49,12 @@ public class BeginActivity extends AppCompatActivity {
         btnLogin.setVisibility(View.VISIBLE);
         overlay.setVisibility(View.GONE);
         animationView.setVisibility(View.GONE);
-        animationView.cancelAnimation(); // Dừng animation nếu đang chạy
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // Hủy animation khi Activity bị tạm dừng
-        if (animationView != null) {
-            animationView.cancelAnimation();
-        }
+        animationView.cancelAnimation();
     }
 
     private void setupButtonListeners() {
-        btnSignup.setOnClickListener(v -> {
-            if (!isProcessing) {
-                isProcessing = true;
-                handleSignUp();
-            }
-        });
-
-        btnLogin.setOnClickListener(v -> {
-            if (!isProcessing) {
-                isProcessing = true;
-                handleLogIn();
-            }
-        });
+        btnSignup.setOnClickListener(v -> navigateTo(SignUp.class));
+        btnLogin.setOnClickListener(v -> navigateTo(LogIn.class));
     }
 
     protected void gradientView() {
@@ -107,43 +82,31 @@ public class BeginActivity extends AppCompatActivity {
         });
     }
 
-    protected void handleSignUp() {
-        Intent intent = new Intent(BeginActivity.this, SignUp.class);
-        changeView(intent);
-    }
-
-    protected void handleLogIn() {
-        Intent intent = new Intent(BeginActivity.this, LogIn.class);
-        changeView(intent);
-    }
-
-    protected void changeView(Intent intent) {
+    private void navigateTo(Class<?> destination) {
+        // Hiển thị loading animation
         btnSignup.setVisibility(View.INVISIBLE);
         btnLogin.setVisibility(View.INVISIBLE);
-
         overlay.setVisibility(View.VISIBLE);
         animationView.setVisibility(View.VISIBLE);
         animationView.bringToFront();
-
         animationView.setAnimation(R.raw.loading_animation);
         animationView.playAnimation();
-        animationView.setTag(intent);
 
-
-        animationView.addAnimatorListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                Intent currentIntent = (Intent) animationView.getTag();
-                if (currentIntent != null && isProcessing) {
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        startActivity(currentIntent);
-                        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                        // Reset trạng thái sau khi chuyển màn hình
-                        isProcessing = false;
-                    }, 200);
-                }
-            }
-        });
+        // Chuyển trang sau khi animation kết thúc
+        animationView.postDelayed(() -> {
+            Intent intent = new Intent(BeginActivity.this, destination);
+            startActivity(intent);
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        }, 1000); // Thời gian đủ để animation chạy
     }
+
+    //    protected
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        // Kết thúc app khi back từ BeginActivity
+        finishAffinity();
+    }
+
 
 }
