@@ -6,10 +6,13 @@ import android.content.Intent;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,14 +21,65 @@ import com.example.n03_quanlychitieu.R;
 
 public class BeginActivity extends AppCompatActivity {
 
+    private LottieAnimationView animationView;
+    private Button btnSignup, btnLogin;
+    private View overlay;
+    private boolean isProcessing = false;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_begin);
 
+
+        animationView = findViewById(R.id.lottie_animation);
+        btnLogin = findViewById(R.id.mb_login);
+        btnSignup = findViewById(R.id.mb_signup);
+        overlay = findViewById(R.id.overlay_begin);
+
         gradientView();
-        handleSignUp();
-        handleLogIn();
+        setupButtonListeners();
+
+//        btnSignup.setOnClickListener(v -> handleSignUp());
+//        btnLogin.setOnClickListener(v -> handleLogIn());
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Hiển thị lại các nút và ẩn overlay/animation
+        btnSignup.setVisibility(View.VISIBLE);
+        btnLogin.setVisibility(View.VISIBLE);
+        overlay.setVisibility(View.GONE);
+        animationView.setVisibility(View.GONE);
+        animationView.cancelAnimation(); // Dừng animation nếu đang chạy
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Hủy animation khi Activity bị tạm dừng
+        if (animationView != null) {
+            animationView.cancelAnimation();
+        }
+    }
+
+    private void setupButtonListeners() {
+        btnSignup.setOnClickListener(v -> {
+            if (!isProcessing) {
+                isProcessing = true;
+                handleSignUp();
+            }
+        });
+
+        btnLogin.setOnClickListener(v -> {
+            if (!isProcessing) {
+                isProcessing = true;
+                handleLogIn();
+            }
+        });
     }
 
     protected void gradientView() {
@@ -54,37 +108,40 @@ public class BeginActivity extends AppCompatActivity {
     }
 
     protected void handleSignUp() {
-        Button btnSignup = findViewById(R.id.mb_signup);
         Intent intent = new Intent(BeginActivity.this, SignUp.class);
-        changeView(btnSignup, intent);
+        changeView(intent);
     }
 
     protected void handleLogIn() {
-        Button btnLogin = findViewById(R.id.mb_login);
         Intent intent = new Intent(BeginActivity.this, LogIn.class);
-        changeView(btnLogin, intent);
+        changeView(intent);
     }
 
-    protected void changeView(Button btn, Intent intent) {
-        LottieAnimationView animationView = findViewById(R.id.lottie_animation);
+    protected void changeView(Intent intent) {
+        btnSignup.setVisibility(View.INVISIBLE);
+        btnLogin.setVisibility(View.INVISIBLE);
 
-        btn.setOnClickListener(new View.OnClickListener() {
+        overlay.setVisibility(View.VISIBLE);
+        animationView.setVisibility(View.VISIBLE);
+        animationView.bringToFront();
+
+        animationView.setAnimation(R.raw.loading_animation);
+        animationView.playAnimation();
+        animationView.setTag(intent);
+
+
+        animationView.addAnimatorListener(new AnimatorListenerAdapter() {
             @Override
-            public void onClick(View v) {
-                animationView.setVisibility(View.VISIBLE);
-                animationView.bringToFront();
-
-                animationView.setAnimation(R.raw.loading_animation);
-                animationView.setProgress(0f); // Reset về đầu
-                animationView.playAnimation();
-
-                animationView.addAnimatorListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        startActivity(intent);
+            public void onAnimationEnd(Animator animation) {
+                Intent currentIntent = (Intent) animationView.getTag();
+                if (currentIntent != null && isProcessing) {
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        startActivity(currentIntent);
                         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                    }
-                });
+                        // Reset trạng thái sau khi chuyển màn hình
+                        isProcessing = false;
+                    }, 200);
+                }
             }
         });
     }
