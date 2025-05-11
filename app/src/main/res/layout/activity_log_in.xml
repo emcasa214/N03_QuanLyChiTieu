@@ -59,6 +59,16 @@
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <TextView
+            android:id="@+id/forgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Don't remember password ?"
+            android:textColor="#8D000000"
+            android:textSize="15dp"
+            android:layout_gravity="right"
+            android:textStyle="bold" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogIn"
             android:layout_width="match_parent"
@@ -101,7 +111,7 @@
 
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGoogle"
+            android:id="@+id/btn_google_signin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/pear"
@@ -155,4 +165,24 @@
 
         </LinearLayout>
     </LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <View
+            android:id="@+id/overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000"
+            android:visibility="gone"/>
+        <ProgressBar
+            android:id="@+id/progress_bar_login"
+            style="@style/Widget.AppCompat.ProgressBar"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:padding="10dp"
+            android:layout_centerInParent="true"
+            android:indeterminateTint="@color/white"
+            android:background="@drawable/loading_overlay"
+            android:visibility="gone"/>
+    </RelativeLayout>
 </RelativeLayout>

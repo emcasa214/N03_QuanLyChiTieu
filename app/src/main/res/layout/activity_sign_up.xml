@@ -183,6 +183,25 @@
             app:iconGravity="textEnd"
             app:strokeWidth="1dp" />
 
-
     </LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <View
+            android:id="@+id/overlay_signup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80000000"
+            android:visibility="gone"/>
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="@style/Widget.AppCompat.ProgressBar"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:padding="10dp"
+            android:layout_centerInParent="true"
+            android:indeterminateTint="@color/white"
+            android:background="@drawable/loading_overlay"
+            android:visibility="gone"/>
+    </RelativeLayout>
 </RelativeLayout>
