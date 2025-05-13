@@ -50,7 +50,7 @@ public class LogIn extends AppCompatActivity {
             new Handler().postDelayed(() -> {
                 hideLoading();
                 loginUser();
-            }, 3000);
+            }, 2000);
         });
 
         tvForgotPassword.setOnClickListener(v -> ForgotPassword());

@@ -98,7 +98,7 @@ public class BeginActivity extends AppCompatActivity {
             Intent intent = new Intent(BeginActivity.this, destination);
             startActivity(intent);
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-        }, 1000); // Thời gian đủ để animation chạy
+        }, 2000); // Thời gian đủ để animation chạy
     }
 
     //    Nhấn back 2 lần để thoát ứng dung
