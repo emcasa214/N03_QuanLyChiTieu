@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -65,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         menuClick();
         setupRecyclerView();
         takeListView();
-        onBackPressed();
+//        onBackPressed();
     }
 
     /**
@@ -190,13 +192,23 @@ public class MainActivity extends AppCompatActivity {
      * onBackPressed() – ghi đè để nếu drawer đang mở thì đóng drawer,
      *                ngược lại mới thực hiện hành vi back mặc định
      */
+    private boolean doubleBackToExitPressedOnce = false;
+
     @Override
     public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
+        if (doubleBackToExitPressedOnce) {
             super.onBackPressed();
+            finishAffinity(); // Đóng hoàn toàn ứng dụng
+            return;
         }
+
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Nhấn BACK lần nữa để thoát", Toast.LENGTH_SHORT).show();
+
+        // Reset cờ sau 3 giây
+        new Handler(Looper.getMainLooper()).postDelayed(() ->
+                doubleBackToExitPressedOnce = false, 3000);
     }
+
 
 }

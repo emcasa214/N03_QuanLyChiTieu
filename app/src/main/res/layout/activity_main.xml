@@ -24,6 +24,7 @@
                 android:background="?attr/colorPrimary"
                 android:title="My App"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
         </com.google.android.material.appbar.AppBarLayout>
 
         <!-- Content area -->

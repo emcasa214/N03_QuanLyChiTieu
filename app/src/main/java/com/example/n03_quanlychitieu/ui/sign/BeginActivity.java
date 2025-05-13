@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -100,13 +101,23 @@ public class BeginActivity extends AppCompatActivity {
         }, 1000); // Thời gian đủ để animation chạy
     }
 
-    //    protected
+    //    Nhấn back 2 lần để thoát ứng dung
+    private boolean doubleBackToExitPressedOnce = false;
+
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        // Kết thúc app khi back từ BeginActivity
-        finishAffinity();
-    }
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            finishAffinity(); // Đóng hoàn toàn ứng dụng
+            return;
+        }
 
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Nhấn BACK lần nữa để thoát", Toast.LENGTH_SHORT).show();
+
+        // Reset cờ sau 3 giây
+        new Handler(Looper.getMainLooper()).postDelayed(() ->
+                doubleBackToExitPressedOnce = false, 3000);
+    }
 
 }

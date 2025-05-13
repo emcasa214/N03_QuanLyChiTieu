@@ -165,6 +165,6 @@
             app:lottie_rawRes="@raw/loading_animation"
             app:lottie_loop="false"
             app:lottie_autoPlay="false"
-            app:lottie_speed="0.9"/>
+            app:lottie_speed="0.8"/>
     </RelativeLayout>
 </RelativeLayout>

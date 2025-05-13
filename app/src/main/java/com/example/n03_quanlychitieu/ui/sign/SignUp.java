@@ -177,8 +177,9 @@ public class SignUp extends AppCompatActivity {
                 progressBar.setVisibility(View.GONE);
                 btnSignUp.setEnabled(true);
                 Toast.makeText(SignUp.this, "Registration successful!", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(SignUp.this, MainActivity.class));
-                finish();
+                Intent intent = new Intent(SignUp.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
             }
 
             @Override
