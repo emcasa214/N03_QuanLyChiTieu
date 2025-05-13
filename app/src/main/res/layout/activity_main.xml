@@ -24,6 +24,7 @@
                 android:background="?attr/colorPrimary"
                 android:title="My App"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
         </com.google.android.material.appbar.AppBarLayout>
 
         <!-- Content area -->
@@ -158,19 +159,16 @@
                 <TextView
                     android:id="@+id/section_title"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:text="Danh Sách Thu Chi"
                     android:textSize="20sp"
                     android:layout_marginBottom="8dp" />
 
                 <!-- List of items -->
-                <ListView
-                    android:id="@+id/list_view"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvThuChi"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:divider="?android:attr/dividerHorizontal"
-                    android:dividerHeight="1dp"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_height="match_parent" />
 
                 <!-- Bottom Buttons Row -->
 

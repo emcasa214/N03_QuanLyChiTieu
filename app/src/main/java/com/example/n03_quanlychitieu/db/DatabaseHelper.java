@@ -2,6 +2,7 @@ package com.example.n03_quanlychitieu.db;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -15,6 +16,14 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+
+import com.example.n03_quanlychitieu.model.Budgets;
+import com.example.n03_quanlychitieu.model.Expenses;
+import com.example.n03_quanlychitieu.model.Incomes;
+import com.example.n03_quanlychitieu.model.Notifications;
+import com.example.n03_quanlychitieu.model.Users;
+
+import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "fin_manager.db";

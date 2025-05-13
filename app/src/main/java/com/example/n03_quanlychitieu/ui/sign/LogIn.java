@@ -50,7 +50,7 @@ public class LogIn extends AppCompatActivity {
             new Handler().postDelayed(() -> {
                 hideLoading();
                 loginUser();
-            }, 2000);
+            }, 3000);
         });
 
         tvForgotPassword.setOnClickListener(v -> ForgotPassword());
@@ -100,8 +100,9 @@ public class LogIn extends AppCompatActivity {
                 progressBarLogin.setVisibility(View.GONE);
                 btnLogin.setEnabled(true);
                 Toast.makeText(LogIn.this, "Login successful!", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(LogIn.this, MainActivity.class));
-                finish();
+                Intent intent = new Intent(LogIn.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
             }
 
             @Override

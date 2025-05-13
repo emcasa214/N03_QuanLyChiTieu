@@ -1,6 +1,8 @@
 package com.example.n03_quanlychitieu.model;
 
-public class Categories {
+import java.io.Serializable;
+
+public class Categories implements Serializable {
     private String category_id;
     private String name;
     private String icon;

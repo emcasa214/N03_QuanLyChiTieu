@@ -1,0 +1,43 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:background="#FFF"> <!-- Có thể thêm nền nếu cần -->
+
+    <!-- Text bên trái chiếm phần còn lại -->
+    <TextView
+        android:id="@+id/txtNguonTien"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="Nguồn tiền"
+        android:paddingRight="10dp"
+        android:textSize="16sp"
+        android:textColor="#000000" />
+
+    <!-- Nút sửa -->
+    <ImageButton
+        android:id="@+id/btnSua"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="8dp"
+        android:src="@drawable/icupdate"
+        android:scaleType="centerInside"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Sửa" />
+
+    <!-- Nút xóa -->
+    <ImageButton
+        android:id="@+id/btnXoa"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="8dp"
+        android:src="@drawable/icbin"
+        android:scaleType="centerInside"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Xóa" />
+
+</LinearLayout>
+

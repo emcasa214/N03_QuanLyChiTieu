@@ -28,6 +28,9 @@ public class CategoryDAO {
     }
 
     public long insert(Categories category) {
+        if (category == null) {
+            return -1; // Trả về -1 nếu đối tượng null
+        }
         ContentValues values = toContentValues(category);
         return db.insert(DatabaseContract.Categories.TABLE_NAME, null, values);
     }
@@ -120,6 +123,9 @@ public class CategoryDAO {
     }
 
     public int update(Categories category) {
+        if (category == null || category.getCategory_id() == null) {
+            return 0; // Trả về 0 nếu đối tượng null hoặc không có ID
+        }
         ContentValues values = toContentValues(category);
         String selection = DatabaseContract.Categories.COLUMN_CATEGORY_ID + " = ?";
         String[] selectionArgs = {category.getCategory_id()};
@@ -142,4 +148,5 @@ public class CategoryDAO {
                 selectionArgs
         );
     }
+    
 }
