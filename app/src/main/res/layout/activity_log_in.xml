@@ -11,7 +11,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/bottomBar"
+        android:layout_above="@+id/bottomLogin"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:orientation="vertical"
@@ -66,6 +66,8 @@
             android:text="Don't remember password ?"
             android:textColor="#8D000000"
             android:textSize="15dp"
+            android:clickable="true"
+            android:focusable="true"
             android:layout_gravity="right"
             android:textStyle="bold" />
 
@@ -128,7 +130,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/bottomBar"
+        android:id="@+id/bottomLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -160,6 +162,8 @@
                 android:cursorVisible="true"
                 android:text="Signup"
                 android:textColor="#E91E63"
+                android:clickable="true"
+                android:focusable="true"
                 android:textSize="20dp"
                 android:textStyle="bold" />
 
@@ -169,7 +173,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <View
-            android:id="@+id/overlay"
+            android:id="@+id/overlay_login"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#80000000"

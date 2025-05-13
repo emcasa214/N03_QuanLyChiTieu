@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/lotion"
+    android:fitsSystemWindows="true">
+
+    <!-- Header với tiêu đề và nút tìm kiếm -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/white"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Notification"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_weight="1"/>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageButton
+                android:id="@+id/btn_search"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackground"
+                android:src="@drawable/ic_search"
+                android:contentDescription="Tìm kiếm thông báo"/>
+
+            <!-- Badge hiển thị số thông báo chưa đọc -->
+            <TextView
+                android:id="@+id/badge_unread"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_alignTop="@id/btn_search"
+                android:layout_alignRight="@id/btn_search"
+                android:layout_marginTop="-4dp"
+                android:layout_marginRight="-4dp"
+                android:background="@drawable/badge_circle"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:visibility="gone"/>
+        </RelativeLayout>
+    </LinearLayout>
+
+    <!-- Tab layout để phân loại thông báo -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:tabIndicatorColor="#6200EE"
+        app:tabSelectedTextColor="#6200EE"
+        app:tabTextColor="#616161">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tất cả"/>
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chưa đọc"/>
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cảnh báo"/>
+    </com.google.android.material.tabs.TabLayout>
+
+    <!-- RecyclerView hiển thị danh sách thông báo -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_notifications"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="16dp"
+        tools:listitem="@layout/item_notification" />
+
+    <!-- Nút đánh dấu tất cả đã đọc -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_mark_all_read"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_check_all"
+        android:contentDescription="Đánh dấu tất cả đã đọc"
+        app:backgroundTint="#6200EE"
+        app:tint="@color/white"/>
+
+    <!-- Empty view khi không có thông báo -->
+    <LinearLayout
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="visible">
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_empty_notifications"
+            android:contentDescription="Không có thông báo"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Không có thông báo nào"
+            android:textColor="#9E9E9E"
+            android:textSize="16sp"/>
+    </LinearLayout>
+</LinearLayout>

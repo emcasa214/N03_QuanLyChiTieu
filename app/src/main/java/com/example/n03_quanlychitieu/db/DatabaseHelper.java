@@ -60,7 +60,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // *** User handle query ***
+    /***
+     * User handle query
+     */
     public interface UserCallback {
         void onSuccess();
         void onError(String errorMessage);
@@ -199,5 +201,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         });
     }
+    /***
+     * User handle query
+     */
 
 }

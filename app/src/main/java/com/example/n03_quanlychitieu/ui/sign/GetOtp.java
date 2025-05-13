@@ -30,7 +30,7 @@ public class GetOtp extends AppCompatActivity {
         MaterialButton btn_get_otp = findViewById(R.id.getOtp);
         overlayGetOtp = findViewById(R.id.overlayGetOtp);
         yourEmailEditText = findViewById(R.id.yourEmail);
-        mAuth = FirebaseAuth.getInstance();
+//        mAuth = FirebaseAuth.getInstance();
 
         // Xử lý sự kiện nút GET OTP
         btn_get_otp.setOnClickListener(v -> validateEmailAndGetOtp());
@@ -42,7 +42,7 @@ public class GetOtp extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
-    // Khi ẩn loading
+//    // Khi ẩn loading
     private void hideLoading() {
         overlayGetOtp.setVisibility(View.GONE);
         progress_bar_get_otp.setVisibility(View.GONE);
@@ -61,17 +61,17 @@ public class GetOtp extends AppCompatActivity {
         showLoading();
 
         // CHeck email in firebase
-        mAuth.fetchSignInMethodsForEmail(email).addOnCompleteListener(task -> {
-           if (task.isSuccessful() && task.getResult() != null && !task.getResult().getSignInMethods().isEmpty()) {
-               sendOtpToEmail(email); // Send OTP if email is valid
-           }else {
-               hideLoading();
-               Toast.makeText(this, "Email is invalid", Toast.LENGTH_SHORT).show();
-           }
-        }).addOnFailureListener(e -> {
-            hideLoading();
-            Toast.makeText(this, "Error connection", Toast.LENGTH_SHORT).show();
-        });
+//        mAuth.fetchSignInMethodsForEmail(email).addOnCompleteListener(task -> {
+//           if (task.isSuccessful() && task.getResult() != null && !task.getResult().getSignInMethods().isEmpty()) {
+//               sendOtpToEmail(email); // Send OTP if email is valid
+//           }else {
+//               hideLoading();
+//               Toast.makeText(this, "Email is invalid", Toast.LENGTH_SHORT).show();
+//           }
+//        }).addOnFailureListener(e -> {
+//            hideLoading();
+//            Toast.makeText(this, "Error connection", Toast.LENGTH_SHORT).show();
+//        });
     }
 
     private void sendOtpToEmail(String email) {

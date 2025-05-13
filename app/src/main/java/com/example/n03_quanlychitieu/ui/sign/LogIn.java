@@ -35,15 +35,16 @@ public class LogIn extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_in);
 
-        textSignup();
-
         etUsernameOrEmail = findViewById(R.id.inforEorU);
         etPasswordLogin = findViewById(R.id.passwordLogin);
         btnLogin = findViewById(R.id.btnLogIn);
         tvForgotPassword = findViewById(R.id.forgotPassword);
         progressBarLogin = findViewById(R.id.progress_bar_login);
-        overlay = findViewById(R.id.overlay);
+        overlay = findViewById(R.id.overlay_login);
         googleSignIn = findViewById(R.id.btn_google_signin);
+
+        textSignup();
+        tvForgotPassword.setOnClickListener(v -> ForgotPassword());
 
         btnLogin.setOnClickListener(v -> {
             showLoading();
@@ -53,14 +54,25 @@ public class LogIn extends AppCompatActivity {
             }, 2000);
         });
 
-        tvForgotPassword.setOnClickListener(v -> ForgotPassword());
     }
 
     private void ForgotPassword() {
-        overlay.setVisibility(View.VISIBLE);
-        progressBarLogin.setVisibility(View.GONE);
-        startActivity(new Intent(LogIn.this, GetOtp.class));
-        finish();
+        try {
+            showLoading(); // Sử dụng hàm có sẵn để thống nhất cách hiển thị loading
+
+            // Chuyển sang màn hình OTP sau 1000ms để người dùng kịp thấy hiệu ứng loading
+            new Handler().postDelayed(() -> {
+                Intent intent = new Intent(LogIn.this, GetOtp.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Xóa các activity cùng task phía trên
+                startActivity(intent);
+                finish(); // Đóng LoginActivity
+                hideLoading(); // Đảm bảo ẩn loading nếu có lỗi
+            }, 1000);
+
+        } catch (Exception e) {
+            hideLoading();
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Animation
@@ -130,7 +142,6 @@ public class LogIn extends AppCompatActivity {
     }
 
     protected void changeViewSignup(TextView text, Intent intent) {
-
         text.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

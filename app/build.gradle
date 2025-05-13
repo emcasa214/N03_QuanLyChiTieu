@@ -51,4 +51,5 @@ dependencies {
     implementation "at.favre.lib:bcrypt:0.9.0"
     implementation 'com.google.android.gms:play-services-auth:20.7.0' // Google Sign-In
     implementation 'com.github.bumptech.glide:glide:4.12.0' // Hiển thị ảnh avatar (nếu cần)
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 }

@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -35,6 +36,10 @@ import com.example.n03_quanlychitieu.model.Incomes;
 import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
+import com.example.n03_quanlychitieu.ui.sign.LogIn;
+import com.example.n03_quanlychitieu.ui.sign.ReportTransaction;
+import com.example.n03_quanlychitieu.ui.sign.SetBudgets;
+import com.example.n03_quanlychitieu.ui.sign.notification_user;
 import com.google.android.material.navigation.NavigationView;
 import com.example.n03_quanlychitieu.ui.income.ViewIncomeActivity;
 
@@ -55,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView rvThuChi;
     ArrayList<String> listThuChistr;
     ThuChiAdapter adapter;
-
+    ImageButton bell;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
         setupRecyclerView();
         takeListView();
 //        onBackPressed();
+        navigateNotification();
+
     }
 
     /**
@@ -78,7 +85,9 @@ public class MainActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
         navView = findViewById(R.id.navigation_view);
         rvThuChi = findViewById(R.id.rvThuChi);
+        bell = findViewById(R.id.notification_button);
         setSupportActionBar(toolbar);
+
     }
     /**
      * toggle() – thêm nút “hamburger” - nút 3 gạch ngang ngang í :)), vào toolbar để điều khiển đóng/mở drawer
@@ -115,8 +124,11 @@ public class MainActivity extends AppCompatActivity {
         }
         else if(itemId == R.id.nav_view_categories){
             startActivity(new Intent(this, AddCategoryActivity.class));
+        } else if (itemId == R.id.nav_statistics) {
+            startActivity(new Intent(this, ReportTransaction.class));
+        } else if(itemId == R.id.nav_budget) {
+            startActivity(new Intent(this, SetBudgets.class));
         }
-
     }
     //hàm xử lý hiển thị 10 thu chi gần nhất vào Danh sách thu chi - 12/5/2025
     private void setupRecyclerView() {
@@ -210,5 +222,16 @@ public class MainActivity extends AppCompatActivity {
                 doubleBackToExitPressedOnce = false, 3000);
     }
 
-
+    /**
+     * Notification
+     */
+    private void navigateNotification() {
+        bell.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, notification_user.class);
+                startActivity(intent);
+            }
+        });
+    }
 }
