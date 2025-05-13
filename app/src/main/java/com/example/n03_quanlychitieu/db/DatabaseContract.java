@@ -17,8 +17,8 @@ public class DatabaseContract {
         public static final String CREATE_TABLE =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
                         COLUMN_USER_ID + " TEXT PRIMARY KEY, " +
-                        COLUMN_USERNAME + " TEXT NOT NULL, " +
-                        COLUMN_EMAIL + " TEXT NOT NULL, " +
+                        COLUMN_USERNAME + " TEXT UNIQUE NOT NULL, " +
+                        COLUMN_EMAIL + " TEXT UNIQUE NOT NULL, " +
                         COLUMN_PASSWORD + " TEXT NOT NULL, " +
                         COLUMN_AVATAR_URL + " TEXT, " +
                         COLUMN_CREATED_AT + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +

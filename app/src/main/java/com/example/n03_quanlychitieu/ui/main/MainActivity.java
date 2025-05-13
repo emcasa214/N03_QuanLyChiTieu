@@ -34,6 +34,7 @@ import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
 import com.google.android.material.navigation.NavigationView;
+import com.example.n03_quanlychitieu.ui.income.ViewIncomeActivity;
 
 import java.lang.reflect.Array;
 import java.text.ParseException;
@@ -178,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> top10 = new ArrayList<>(
                 temp.subList(0, Math.min(10, temp.size()))
         );
-
         // Update dữ liệu cho RecyclerView
         listThuChistr.clear();
         listThuChistr.addAll(top10);
