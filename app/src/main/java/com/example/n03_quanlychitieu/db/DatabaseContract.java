@@ -31,6 +31,7 @@ public class DatabaseContract {
         public static final String COLUMN_ICON = "icon";
         public static final String COLUMN_COLOR = "color";
         public static final String COLUMN_TYPE = "type";
+        public static final String COLUMN_USER_ID = "user_id";
         public static final String CREATE_TABLE =
                 "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
                         COLUMN_CATEGORY_ID + " TEXT PRIMARY KEY, " +
@@ -38,6 +39,9 @@ public class DatabaseContract {
                         COLUMN_ICON + " TEXT, " +
                         COLUMN_COLOR + " TEXT, " +
                         COLUMN_TYPE + " TEXT NOT NULL CHECK(" + COLUMN_TYPE + " IN ('income','expense'))" +
+                        COLUMN_USER_ID + " TEXT NOT NULL, " +
+                        "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " +
+                        Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE" +
                         ")";
     }
     public static class Notifications {

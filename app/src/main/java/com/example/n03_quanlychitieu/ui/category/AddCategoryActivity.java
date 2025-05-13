@@ -22,6 +22,7 @@ import com.example.n03_quanlychitieu.dao.CategoryDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.model.Categories;
 import com.example.n03_quanlychitieu.ui.main.MainActivity;
+import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +33,13 @@ public class AddCategoryActivity extends AppCompatActivity implements EditCatego
     private RecyclerView.Adapter<MyViewHolder> adapter;
     private RecyclerView recyclerView;
     private CategoryDAO categoryDAO;
-    private List<Categories> list;
+
+    private List<Categories> list = new ArrayList<>(); // Khởi tạo danh sách rỗng
+    private List<Categories> filteredList = new ArrayList<>(); // Khởi tạo danh sách rỗng
     private ImageButton btnThem, btnQuayLai;
     RadioGroup radioGroupType;
-    private List<Categories> filteredList;
+
+    String userId = AuthenticationManager.getInstance(this).getCurrentUser().getUser_id();
 
 
     @Override
@@ -49,6 +53,10 @@ public class AddCategoryActivity extends AppCompatActivity implements EditCatego
         setupRadio();
         recyclerViewHandle();
         btnThemSuaClick();
+
+        // Đặt mặc định chọn "Thu" và hiển thị danh mục "Thu"
+        radioGroupType.check(R.id.radioThu); // Đặt mặc định chọn "Thu"
+        filterCategories("income"); // Lọc danh mục "Thu"
 
     }
     public void khoitao(){
@@ -68,13 +76,22 @@ public class AddCategoryActivity extends AppCompatActivity implements EditCatego
         });
     }
     private void filterCategories(String type) {
-        filteredList = new ArrayList<>();
-        for (Categories c : list) {
-            if (c.getType().equals(type)) {
-                filteredList.add(c);
+        if (filteredList == null) {
+            filteredList = new ArrayList<>(); // Khởi tạo danh sách nếu bị null
+        }
+        filteredList.clear(); // Xóa dữ liệu cũ
+
+        if (list != null && !list.isEmpty()) {
+            for (Categories c : list) {
+                if (c.getType().equals(type)) {
+                    filteredList.add(c);
+                }
             }
         }
-        adapter.notifyDataSetChanged(); // Cập nhật RecyclerView
+
+        if (adapter != null) {
+            adapter.notifyDataSetChanged(); // Cập nhật RecyclerView
+        }
     }
     private void addSampleData() {
         SQLiteDatabase database = db.getWritableDatabase();
@@ -95,33 +112,33 @@ public class AddCategoryActivity extends AppCompatActivity implements EditCatego
 
     }
 
-    public void recyclerViewHandle(){
-        list = categoryDAO.getAllCategories();
-        filteredList = new ArrayList<>(list);
-        if (list != null && !list.isEmpty()){
+    public void recyclerViewHandle() {
+        list = categoryDAO.getAllCategories(userId); // Lấy danh sách từ cơ sở dữ liệu
+        filteredList.clear(); // Đảm bảo danh sách lọc được làm mới
+
+        if (list != null && !list.isEmpty()) {
+            filteredList.addAll(list); // Sao chép toàn bộ danh sách vào filteredList
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             adapter = new RecyclerView.Adapter<MyViewHolder>() {
                 @NonNull
                 @Override
                 public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                    View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_category,parent,false);
+                    View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_category, parent, false);
                     return new MyViewHolder(v);
                 }
 
                 @Override
                 public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
                     Categories c = filteredList.get(position);
-                    if (c != null){
+                    if (c != null) {
                         // Lấy icon từ tài nguyên
                         int iconResId = getResources().getIdentifier(c.getIcon(), "drawable", getPackageName());
                         if (iconResId != 0) {
-                            // Tạo drawable từ tài nguyên
                             android.graphics.drawable.Drawable iconDrawable = getResources().getDrawable(iconResId, null);
                             if (iconDrawable != null) {
-                                // Đặt kích thước cho icon (32px x 32px)
-                                int sizeInPx = (int) (32 * getResources().getDisplayMetrics().density); // Chuyển đổi từ dp sang px
+                                int sizeInPx = (int) (32 * getResources().getDisplayMetrics().density);
                                 iconDrawable.setBounds(0, 0, sizeInPx, sizeInPx);
-                                holder.txtNguonTien.setCompoundDrawables(iconDrawable, null, null, null); // Đặt icon bên trái
+                                holder.txtNguonTien.setCompoundDrawables(iconDrawable, null, null, null);
                                 holder.txtNguonTien.setCompoundDrawablePadding((int) (8 * getResources().getDisplayMetrics().density));
                             }
                         }
@@ -131,12 +148,9 @@ public class AddCategoryActivity extends AppCompatActivity implements EditCatego
 
                         // Hiển thị tên danh mục
                         holder.txtNguonTien.setText(c.getName());
-                        holder.btnSua.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                EditCategoryActivity dialog = EditCategoryActivity.newInstance(c.getCategory_id(),c.getName(),c.getColor(),c.getType(),c.getIcon());
-                                dialog.show(((AppCompatActivity) view.getContext()).getSupportFragmentManager(), "EditCategoryActivity");
-                            }
+                        holder.btnSua.setOnClickListener(view -> {
+                            EditCategoryActivity dialog = EditCategoryActivity.newInstance(c.getCategory_id(), c.getName(), c.getColor(), c.getType(), c.getIcon());
+                            dialog.show(((AppCompatActivity) view.getContext()).getSupportFragmentManager(), "EditCategoryActivity");
                         });
                         holder.btnXoa.setOnClickListener(view -> {
                             new AlertDialog.Builder(view.getContext())
@@ -144,18 +158,16 @@ public class AddCategoryActivity extends AppCompatActivity implements EditCatego
                                     .setMessage("Bạn có chắc chắn muốn xóa danh mục này không?")
                                     .setPositiveButton("Xóa", (dialog, which) -> {
                                         categoryDAO.delete(c.getCategory_id());
-                                        list = categoryDAO.getAllCategories(); // Lấy lại danh sách từ cơ sở dữ liệu
+                                        list = categoryDAO.getAllCategories(userId); // Lấy lại danh sách từ cơ sở dữ liệu
                                         filterCategories(radioGroupType.getCheckedRadioButtonId() == R.id.radioThu ? "income" : "expense");
                                         Toast.makeText(view.getContext(), "Xóa danh mục thành công", Toast.LENGTH_SHORT).show();
                                     })
                                     .setNegativeButton("Hủy", null)
                                     .show();
                         });
-                    }
-                    else{
+                    } else {
                         holder.txtNguonTien.setText("Không có dữ liệu");
                     }
-
                 }
 
                 @Override
@@ -164,26 +176,32 @@ public class AddCategoryActivity extends AppCompatActivity implements EditCatego
                 }
             };
             recyclerView.setAdapter(adapter);
-        }
-        else{
+        } else {
             Toast.makeText(this, "Không có danh mục", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     public void onCategorySaved(String id, String name, String color, String type, String icon) {
-        if(id == null){
-            Categories c = new Categories(UUID.randomUUID().toString(),name,icon,color,type);
+        if (id == null) {
+            Categories c = new Categories(UUID.randomUUID().toString(), name, icon, color, type, userId);
+            c.setUser_id(userId); // Gán user_id
             categoryDAO.insert(c);
-        }
-        else{
-            Categories c = new Categories(id,name,icon,color,type);
+        } else {
+            Categories c = new Categories(id, name, icon, color, type, userId);
+            c.setUser_id(userId); // Gán user_id
             categoryDAO.update(c);
         }
-        list = categoryDAO.getAllCategories(); // Lấy lại danh sách từ cơ sở dữ liệu
+
+        list = categoryDAO.getAllCategories(userId); // Lấy danh mục theo user_id
+        if (list == null || list.isEmpty()) {
+            Toast.makeText(this, "Không có danh mục", Toast.LENGTH_SHORT).show();
+        } else {
+            filterCategories(radioGroupType.getCheckedRadioButtonId() == R.id.radioThu ? "income" : "expense");
+        }
         adapter.notifyDataSetChanged();
     }
-
+    
     class MyViewHolder extends RecyclerView.ViewHolder{
         TextView txtNguonTien;
         ImageButton btnSua, btnXoa;
@@ -194,6 +212,5 @@ public class AddCategoryActivity extends AppCompatActivity implements EditCatego
             btnXoa = itemView.findViewById(R.id.btnXoa);
         }
     }
-
 
 }

@@ -19,11 +19,12 @@ public class CategoryDAO {
 
     private ContentValues toContentValues(Categories category) {
         ContentValues values = new ContentValues();
-        values.put(DatabaseContract.Categories.COLUMN_CATEGORY_ID, category.getCategory_id());
-        values.put(DatabaseContract.Categories.COLUMN_NAME, category.getName());
-        values.put(DatabaseContract.Categories.COLUMN_ICON, category.getIcon());
-        values.put(DatabaseContract.Categories.COLUMN_COLOR, category.getColor());
-        values.put(DatabaseContract.Categories.COLUMN_TYPE, category.getType());
+        values.put("category_id", category.getCategory_id());
+        values.put("name", category.getName());
+        values.put("icon", category.getIcon());
+        values.put("color", category.getColor());
+        values.put("type", category.getType());
+        values.put("user_id", category.getUser_id()); // Thêm user_id
         return values;
     }
 
@@ -32,16 +33,19 @@ public class CategoryDAO {
             return -1; // Trả về -1 nếu đối tượng null
         }
         ContentValues values = toContentValues(category);
-        return db.insert(DatabaseContract.Categories.TABLE_NAME, null, values);
+        return db.insert("Categories", null, values);
     }
-
-    public List<Categories> getAllCategories() {
+    // Lấy tất cả danh mục theo user_id
+    public List<Categories> getAllCategories(String userId) {
         List<Categories> categories = new ArrayList<>();
+        String selection = "user_id = ?";
+        String[] selectionArgs = {userId};
+
         Cursor cursor = db.query(
                 DatabaseContract.Categories.TABLE_NAME,
                 null,
-                null,
-                null,
+                selection,
+                selectionArgs,
                 null,
                 null,
                 null
@@ -54,7 +58,8 @@ public class CategoryDAO {
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_NAME)),
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_ICON)),
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_COLOR)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_TYPE))
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_TYPE)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_USER_ID))
                 );
                 categories.add(category);
             } while (cursor.moveToNext());
@@ -85,7 +90,8 @@ public class CategoryDAO {
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_NAME)),
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_ICON)),
                         cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_COLOR)),
-                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_TYPE))
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_TYPE)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_USER_ID))
                 );
                 categories.add(category);
             } while (cursor.moveToNext());
@@ -114,7 +120,8 @@ public class CategoryDAO {
                     cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_NAME)),
                     cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_ICON)),
                     cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_COLOR)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_TYPE))
+                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_TYPE)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Categories.COLUMN_USER_ID))
             );
             cursor.close();
             return category;
