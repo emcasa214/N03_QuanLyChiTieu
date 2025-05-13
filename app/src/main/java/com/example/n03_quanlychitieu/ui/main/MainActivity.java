@@ -1,11 +1,17 @@
 package com.example.n03_quanlychitieu.ui.main;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,16 +21,38 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.adapter.ThuChiAdapter;
+import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Budgets;
+import com.example.n03_quanlychitieu.model.Expenses;
+import com.example.n03_quanlychitieu.model.Incomes;
+import com.example.n03_quanlychitieu.model.Notifications;
+import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
 import com.google.android.material.navigation.NavigationView;
+
+import java.lang.reflect.Array;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     DrawerLayout drawerLayout;
     Toolbar toolbar;
     NavigationView navView;
+    RecyclerView rvThuChi;
+    ArrayList<String> listThuChistr;
+    ThuChiAdapter adapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
         khoitao();
         toggle();
         menuClick();
+        setupRecyclerView();
+        takeListView();
         onBackPressed();
     }
 
@@ -44,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawmain);
         toolbar = findViewById(R.id.toolbar);
         navView = findViewById(R.id.navigation_view);
+        rvThuChi = findViewById(R.id.rvThuChi);
         setSupportActionBar(toolbar);
     }
     /**
@@ -79,13 +110,81 @@ public class MainActivity extends AppCompatActivity {
         if (itemId == R.id.nav_home) {
             startActivity(new Intent(this, MainActivity.class));
         }
-//        else if (itemId == R.id.nav_settings) {
-//            startActivity(new Intent(this, SettingsActivity.class));
-//        } else if (itemId == R.id.nav_logout) {
-//            logout();
-//        }
+        else if(itemId == R.id.nav_view_categories){
+            startActivity(new Intent(this, AddCategoryActivity.class));
+        }
 
     }
+    //hàm xử lý hiển thị 10 thu chi gần nhất vào Danh sách thu chi - 12/5/2025
+    private void setupRecyclerView() {
+        listThuChistr = new ArrayList<>();
+        adapter = new ThuChiAdapter(listThuChistr);
+        rvThuChi.setLayoutManager(new LinearLayoutManager(this));
+        rvThuChi.setAdapter(adapter);
+    }
+    private void takeListView() {
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        ArrayList<String> temp = new ArrayList<>();
+
+        // Lấy dữ liệu Incomes
+        Cursor cIn = db.rawQuery(
+                "SELECT description, amount, create_at FROM Incomes", null);
+        while (cIn.moveToNext()) {
+            String d = cIn.getString(0);
+            double a = cIn.getDouble(1);
+            String date = cIn.getString(2);
+//            temp.add("Thu: " + d + " - " + a + " VND - " + date);
+            temp.add(date + " - " + d + " - " + a + " VND");
+        }
+        cIn.close();
+
+        // Lấy dữ liệu Expenses
+        Cursor cEx = db.rawQuery(
+                "SELECT description, amount, create_at FROM Expenses", null);
+        while (cEx.moveToNext()) {
+            String d = cEx.getString(0);
+            double a = cEx.getDouble(1);
+            String date = cEx.getString(2);
+//            temp.add("Chi: " + d + " - " + a + " VND - " + date);
+            temp.add(date + " - " + d + " - " + a + " VND");
+        }
+        cEx.close();
+
+        // 1. Khởi tạo formatter
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+        // 2. Sort giảm dần theo ngày
+        Collections.sort(temp, (o1, o2) -> {
+            try {
+                // tách ra mảng ["2025-05-15", "Bán hàng online", "1500000.0 VND"]
+                String[] parts1 = o1.split(" - ");
+                String[] parts2 = o2.split(" - ");
+
+                // phần 0 luôn là chuỗi ngày yyyy-MM-dd
+                Date d1 = sdf.parse(parts1[0].trim());
+                Date d2 = sdf.parse(parts2[0].trim());
+
+                // mới nhất trước
+                return d2.compareTo(d1);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return 0;
+            }
+        });
+
+        // 3. Lấy 10 mục đầu
+        ArrayList<String> top10 = new ArrayList<>(
+                temp.subList(0, Math.min(10, temp.size()))
+        );
+
+        // Update dữ liệu cho RecyclerView
+        listThuChistr.clear();
+        listThuChistr.addAll(top10);
+        adapter.notifyDataSetChanged();
+    }
+
 
     /**
      * onBackPressed() – ghi đè để nếu drawer đang mở thì đóng drawer,
