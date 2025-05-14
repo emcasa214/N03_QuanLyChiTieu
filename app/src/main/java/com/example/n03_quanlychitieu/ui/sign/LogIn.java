@@ -108,7 +108,6 @@ public class LogIn extends AppCompatActivity {
             @Override
             public void onUserLoaded(Users user) {
                 AuthenticationManager.getInstance(LogIn.this).saveLoginState(user);
-
                 progressBarLogin.setVisibility(View.GONE);
                 btnLogin.setEnabled(true);
                 Toast.makeText(LogIn.this, "Login successful!", Toast.LENGTH_SHORT).show();

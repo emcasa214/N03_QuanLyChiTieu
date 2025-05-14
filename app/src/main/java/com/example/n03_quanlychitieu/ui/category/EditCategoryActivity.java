@@ -149,10 +149,20 @@ public class EditCategoryActivity extends DialogFragment {
 
     public void setIcon(){
         int[] iconList = {
-                R.drawable.icadd,
-                R.drawable.icbank,
-                R.drawable.icuser,
-                R.drawable.icwallet
+                R.drawable.ic_cate_clothers,
+                R.drawable.ic_cate_connect,
+                R.drawable.ic_cate_edu,
+                R.drawable.ic_cate_food,
+                R.drawable.ic_cate_elec,
+                R.drawable.ic_cate_gasoline,
+                R.drawable.ic_cate_gift,
+                R.drawable.ic_cate_home,
+                R.drawable.ic_cate_makeup,
+                R.drawable.ic_cate_market,
+                R.drawable.ic_cate_medicin,
+                R.drawable.ic_cate_money,
+                R.drawable.ic_cate_phone,
+                R.drawable.ic_cate_trade
         };
 
         btnChonIcon.setOnClickListener(v -> {

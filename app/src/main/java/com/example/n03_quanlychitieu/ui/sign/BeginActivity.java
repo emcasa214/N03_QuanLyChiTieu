@@ -8,6 +8,7 @@ import android.graphics.Shader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -19,6 +20,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.ui.main.MainActivity;
+import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 
 public class BeginActivity extends AppCompatActivity {
 
@@ -45,12 +48,29 @@ public class BeginActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Hiển thị lại các nút và ẩn overlay/animation
-        btnSignup.setVisibility(View.VISIBLE);
-        btnLogin.setVisibility(View.VISIBLE);
-        overlay.setVisibility(View.GONE);
-        animationView.setVisibility(View.GONE);
-        animationView.cancelAnimation();
+//
+//        Log.d("BeginActivity", "User is not logged in, staying on BeginActivity");
+//        btnSignup.setVisibility(View.VISIBLE);
+//        btnLogin.setVisibility(View.VISIBLE);
+//        overlay.setVisibility(View.GONE);
+//        animationView.setVisibility(View.GONE);
+//        animationView.cancelAnimation();
+
+        // Kiểm tra trạng thái đăng nhập
+        if (AuthenticationManager.getInstance(this).isUserLoggedIn()) {
+            // Nếu đã đăng nhập, chuyển hướng sang MainActivity
+            Log.d("BeginActivity", "User is logged in, redirecting to MainActivity");
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        } else {
+            // Nếu chưa đăng nhập, hiển thị lại các nút và ẩn overlay/animation
+            Log.d("BeginActivity", "User is not logged in, staying on BeginActivity");
+            btnSignup.setVisibility(View.VISIBLE);
+            btnLogin.setVisibility(View.VISIBLE);
+            overlay.setVisibility(View.GONE);
+            animationView.setVisibility(View.GONE);
+            animationView.cancelAnimation();
+        }
     }
 
     private void setupButtonListeners() {
@@ -98,7 +118,7 @@ public class BeginActivity extends AppCompatActivity {
             Intent intent = new Intent(BeginActivity.this, destination);
             startActivity(intent);
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-        }, 2000); // Thời gian đủ để animation chạy
+        }, 1000); // Thời gian đủ để animation chạy
     }
 
     //    Nhấn back 2 lần để thoát ứng dung

@@ -18,6 +18,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -40,6 +41,7 @@ import com.example.n03_quanlychitieu.ui.sign.LogIn;
 import com.example.n03_quanlychitieu.ui.sign.ReportTransaction;
 import com.example.n03_quanlychitieu.ui.sign.SetBudgets;
 import com.example.n03_quanlychitieu.ui.sign.notification_user;
+import com.example.n03_quanlychitieu.ui.user.UserProfileActivity;
 import com.google.android.material.navigation.NavigationView;
 import com.example.n03_quanlychitieu.ui.income.ViewIncomeActivity;
 
@@ -54,44 +56,69 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
+    DatabaseHelper dbHelper;
+
     DrawerLayout drawerLayout;
+    SearchView searchView;
     Toolbar toolbar;
     NavigationView navView;
     RecyclerView rvThuChi;
     ArrayList<String> listThuChistr;
     ThuChiAdapter adapter;
-    ImageButton bell;
+    ImageButton bell; // xuandong
+
+    ImageButton btnUser; // qtrang
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("MainActivity", "MainActivity started");
         setContentView(R.layout.activity_main);
 
+        dbHelper = new DatabaseHelper(this);
+//        dbHelper.getReadableDatabase();
+
+//        dbHelper.insertSampleData();
         khoitao();
         toggle();
         menuClick();
         setupRecyclerView();
         takeListView();
+        setClickUser();
+        setupSearch();
 //        onBackPressed();
         navigateNotification();
 
     }
 
-    /**
-     * Khởi tạo (khoitao) – ánh xạ các view từ XML sang Java và set Toolbar làm ActionBar
-     */
     public void khoitao(){
         drawerLayout = findViewById(R.id.drawmain);
         toolbar = findViewById(R.id.toolbar);
         navView = findViewById(R.id.navigation_view);
         rvThuChi = findViewById(R.id.rvThuChi);
-        bell = findViewById(R.id.notification_button);
+        bell = findViewById(R.id.notification_button); // xuandong
+
+        btnUser = findViewById(R.id.btnUser);
+        searchView = findViewById(R.id.search_view);
+      
         setSupportActionBar(toolbar);
 
     }
-    /**
-     * toggle() – thêm nút “hamburger” - nút 3 gạch ngang ngang í :)), vào toolbar để điều khiển đóng/mở drawer
-     */
+
+    //set up click cho icon user sang màn hình thông tin cá nhân
+    public void setClickUser(){
+        btnUser.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, UserProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+     // toggle() – thêm nút “hamburger” - nút 3 gạch ngang ngang í :)), vào toolbar để điều khiển đóng/mở drawer
     public void toggle(){
         // Thêm nút toggle (3 gạch)
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -101,9 +128,7 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
     }
-    /**
-     * menuClick() – Hàm gọi hàm xử lý sự kiện khi người dùng chọn một mục trong NavigationView
-     */
+    // menuClick() – Hàm gọi hàm xử lý sự kiện khi người dùng chọn một mục trong NavigationView
     public void menuClick(){
         navView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -115,9 +140,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    /**
-     * handleNavigation() – xử lý sự kiện khi người dùng chọn một mục trong NavigationView, làm nút nào thì xử lý nút đó vô đây
-     */
+
+     // handleNavigation() – xử lý sự kiện khi người dùng chọn một mục trong NavigationView, làm nút nào thì xử lý nút đó vô đây
     private void handleNavigation(int itemId) {
         if (itemId == R.id.nav_home) {
             startActivity(new Intent(this, MainActivity.class));
@@ -130,7 +154,72 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, SetBudgets.class));
         }
     }
-    //hàm xử lý hiển thị 10 thu chi gần nhất vào Danh sách thu chi - 12/5/2025
+//    set up cho ô tìm kiếm
+    public void setupSearch(){
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchListView(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.isEmpty()) {
+                    takeListView(); // Hiển thị lại toàn bộ khi xóa tìm kiếm
+                } else {
+                    searchListView(newText);
+                }
+                return true;
+            }
+        });
+    }
+    private void searchListView(String keyword) {
+        new Thread(() -> {
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            ArrayList<String> temp = new ArrayList<>();
+
+            // Tìm kiếm trong Incomes
+            Cursor cIn = db.rawQuery(
+                    "SELECT description, amount, create_at FROM Incomes WHERE description LIKE ?",
+                    new String[]{"%" + keyword + "%"});
+            while (cIn.moveToNext()) {
+                String d = cIn.getString(0);
+                double a = cIn.getDouble(1);
+                String date = cIn.getString(2);
+                long amountInt = (long) a;
+                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            }
+            cIn.close();
+
+            // Tìm kiếm trong Expenses
+            Cursor cEx = db.rawQuery(
+                    "SELECT description, amount, create_at FROM Expenses WHERE description LIKE ?",
+                    new String[]{"%" + keyword + "%"});
+            while (cEx.moveToNext()) {
+                String d = cEx.getString(0);
+                double a = cEx.getDouble(1);
+                String date = cEx.getString(2);
+                long amountInt = (long) a;
+                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            }
+            cEx.close();
+
+            // Sắp xếp theo thời gian giảm dần
+            Collections.sort(temp, (s1, s2) -> {
+                String date1 = s1.split(" - ")[0];
+                String date2 = s2.split(" - ")[0];
+                return date2.compareTo(date1);
+            });
+
+            runOnUiThread(() -> {
+                listThuChistr.clear();
+                listThuChistr.addAll(temp);
+                adapter.notifyDataSetChanged();
+            });
+        }).start();
+    }
+//    //hàm xử lý hiển thị 10 thu chi gần nhất vào Danh sách thu chi - 12/5/2025
     private void setupRecyclerView() {
         listThuChistr = new ArrayList<>();
         adapter = new ThuChiAdapter(listThuChistr);
@@ -138,68 +227,58 @@ public class MainActivity extends AppCompatActivity {
         rvThuChi.setAdapter(adapter);
     }
     private void takeListView() {
-        DatabaseHelper dbHelper = new DatabaseHelper(this);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        new Thread(() -> {
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            ArrayList<String> temp = new ArrayList<>();
 
-        ArrayList<String> temp = new ArrayList<>();
-
-        // Lấy dữ liệu Incomes
-        Cursor cIn = db.rawQuery(
-                "SELECT description, amount, create_at FROM Incomes", null);
-        while (cIn.moveToNext()) {
-            String d = cIn.getString(0);
-            double a = cIn.getDouble(1);
-            String date = cIn.getString(2);
-//            temp.add("Thu: " + d + " - " + a + " VND - " + date);
-            temp.add(date + " - " + d + " - " + a + " VND");
-        }
-        cIn.close();
-
-        // Lấy dữ liệu Expenses
-        Cursor cEx = db.rawQuery(
-                "SELECT description, amount, create_at FROM Expenses", null);
-        while (cEx.moveToNext()) {
-            String d = cEx.getString(0);
-            double a = cEx.getDouble(1);
-            String date = cEx.getString(2);
-//            temp.add("Chi: " + d + " - " + a + " VND - " + date);
-            temp.add(date + " - " + d + " - " + a + " VND");
-        }
-        cEx.close();
-
-        // 1. Khởi tạo formatter
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-
-        // 2. Sort giảm dần theo ngày
-        Collections.sort(temp, (o1, o2) -> {
-            try {
-                // tách ra mảng ["2025-05-15", "Bán hàng online", "1500000.0 VND"]
-                String[] parts1 = o1.split(" - ");
-                String[] parts2 = o2.split(" - ");
-
-                // phần 0 luôn là chuỗi ngày yyyy-MM-dd
-                Date d1 = sdf.parse(parts1[0].trim());
-                Date d2 = sdf.parse(parts2[0].trim());
-
-                // mới nhất trước
-                return d2.compareTo(d1);
-            } catch (ParseException e) {
-                e.printStackTrace();
-                return 0;
+            // Lấy dữ liệu và sắp xếp theo thời gian giảm dần (mới nhất trước)
+            Cursor cIn = db.rawQuery(
+                    "SELECT description, amount, create_at FROM Incomes", null);
+            while (cIn.moveToNext()) {
+                String d = cIn.getString(0);
+                double a = cIn.getDouble(1);
+                String date = cIn.getString(2);
+                long amountInt = (long) a;
+                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
             }
-        });
+            cIn.close();
 
-        // 3. Lấy 10 mục đầu
-        ArrayList<String> top10 = new ArrayList<>(
-                temp.subList(0, Math.min(10, temp.size()))
-        );
-        // Update dữ liệu cho RecyclerView
-        listThuChistr.clear();
-        listThuChistr.addAll(top10);
-        adapter.notifyDataSetChanged();
+            Cursor cEx = db.rawQuery(
+                    "SELECT description, amount, create_at FROM Expenses", null);
+            while (cEx.moveToNext()) {
+                String d = cEx.getString(0);
+                double a = cEx.getDouble(1);
+                String date = cEx.getString(2);
+                long amountInt = (long) a;
+                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            }
+            cEx.close();
+
+            // Sắp xếp theo thời gian giảm dần (giả sử create_at có định dạng yyyy-MM-dd hoặc yyyy-MM-dd HH:mm:ss)
+            Collections.sort(temp, (s1, s2) -> {
+                String date1 = s1.split(" - ")[0];
+                String date2 = s2.split(" - ")[0];
+                return date2.compareTo(date1); // giảm dần
+            });
+
+            // Cập nhật RecyclerView
+            runOnUiThread(() -> {
+                listThuChistr.clear();
+                listThuChistr.addAll(temp);
+                adapter.notifyDataSetChanged();
+            });
+        }).start();
     }
 
 
+//    @Override
+//    public void onBackPressed() {
+//        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+//            drawerLayout.closeDrawer(GravityCompat.START);
+//        } else {
+//            super.onBackPressed();
+//        }
+//    }
     /**
      * onBackPressed() – ghi đè để nếu drawer đang mở thì đóng drawer,
      *                ngược lại mới thực hiện hành vi back mặc định

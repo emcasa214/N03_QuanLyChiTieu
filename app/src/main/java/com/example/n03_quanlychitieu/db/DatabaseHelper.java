@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.example.n03_quanlychitieu.model.Users;
 
@@ -27,7 +28,7 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "fin_manager.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 3;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -195,14 +196,89 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 });
 
             } catch (Exception e) {
+                Log.e("DatabaseHelper", "Error opening/querying DB", e);
                 new Handler(Looper.getMainLooper()).post(() -> {
                     callback.onError("Database error: " + e.getMessage());
                 });
             }
         });
     }
+  
     /***
      * User handle query
      */
+  
+  // Hàm này cần xem xét lại
+    public Users getUserById(String userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Users user = null;
+
+        Cursor cursor = db.query(
+                "Users", // Tên bảng
+                null, // Lấy tất cả các cột
+                "user_id = ?", // Điều kiện WHERE
+                new String[]{userId}, // Giá trị điều kiện
+                null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            user = new Users(
+                    cursor.getString(cursor.getColumnIndexOrThrow("user_id")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("username")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("email")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("password")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("avatar_url")),
+                    cursor.getString(cursor.getColumnIndexOrThrow("created_at"))
+            );
+            cursor.close();
+        }
+
+        db.close();
+        return user;
+    }
+    public String getPasswordForUser(String userId) {
+        String stored = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        try {
+            // Query chọn cột password
+            String sql = "SELECT password FROM Users WHERE user_id = ?";
+            cursor = db.rawQuery(sql, new String[]{ userId });
+
+            if (cursor.moveToFirst()) {
+                stored = cursor.getString(cursor.getColumnIndexOrThrow("password"));
+            }
+        } finally {
+            if (cursor != null) cursor.close();
+            db.close();
+        }
+        return stored;
+    }
+    public void insertSampleData() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Chèn Categories
+        db.execSQL("INSERT OR IGNORE INTO Categories (category_id, name, icon, color, type, user_id) VALUES " +
+                "('cat1', 'Ăn uống', 'ic_food', '#FF5722', 'expense', '6cc204cb-95b7-4e7d-9b55-5e088834f033')," +
+                "('cat2', 'Lương', 'ic_salary', '#4CAF50', 'income', '6cc204cb-95b7-4e7d-9b55-5e088834f033');");
+
+        // Chèn Budgets
+        db.execSQL("INSERT OR IGNORE INTO Budgets (budget_id, amount, start_date, end_date, description, user_id, category_id) VALUES " +
+                "('bud1', 2000000, '2025-05-01', '2025-05-31', 'Shopping' ,'6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1');");
+
+        // Chèn Expenses
+        db.execSQL("INSERT OR IGNORE INTO Expenses (expense_id, amount, description, create_at, user_id, category_id, budget_id) VALUES " +
+                "('exp1', 50000, 'Ăn sáng', '2025-05-02', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1', 'bud1')," +
+                "('exp2', 120000, 'Ăn trưa', '2025-05-05', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1', 'bud1');");
+
+        // Chèn Incomes
+        db.execSQL("INSERT OR IGNORE INTO Incomes (income_id, amount, description, create_at, user_id, category_id) VALUES " +
+                "('inc1', 10000000, 'Lương tháng 5', '2025-05-01', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat2');");
+
+        // Chèn Notifications
+//        db.execSQL("INSERT OR IGNORE INTO Notifications (notification_id, content, is_read, created_at, notification_type, user_id) VALUES " +
+//                "('noti1', 'Bạn đã chi tiêu vượt ngân sách!', 0, '2025-05-15 08:00:00', 'warn', '6cc204cb-95b7-4e7d-9b55-5e088834f033');");
+
+        db.close();
+    }
 
 }
