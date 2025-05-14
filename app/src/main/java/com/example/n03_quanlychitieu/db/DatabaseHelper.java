@@ -61,7 +61,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // *** User handle query ***
+    /***
+     * User handle query
+     */
     public interface UserCallback {
         void onSuccess();
         void onError(String errorMessage);
@@ -201,6 +203,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         });
     }
+  
+    /***
+     * User handle query
+     */
+  
+  // Hàm này cần xem xét lại
     public Users getUserById(String userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Users user = null;

@@ -37,6 +37,10 @@ import com.example.n03_quanlychitieu.model.Incomes;
 import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
+import com.example.n03_quanlychitieu.ui.sign.LogIn;
+import com.example.n03_quanlychitieu.ui.sign.ReportTransaction;
+import com.example.n03_quanlychitieu.ui.sign.SetBudgets;
+import com.example.n03_quanlychitieu.ui.sign.notification_user;
 import com.example.n03_quanlychitieu.ui.user.UserProfileActivity;
 import com.google.android.material.navigation.NavigationView;
 import com.example.n03_quanlychitieu.ui.income.ViewIncomeActivity;
@@ -61,8 +65,10 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView rvThuChi;
     ArrayList<String> listThuChistr;
     ThuChiAdapter adapter;
+    ImageButton bell; // xuandong
 
-    ImageButton btnUser;
+    ImageButton btnUser; // qtrang
+
 
 
     @Override
@@ -83,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
         setClickUser();
         setupSearch();
 //        onBackPressed();
+        navigateNotification();
+
     }
 
     public void khoitao(){
@@ -90,9 +98,13 @@ public class MainActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
         navView = findViewById(R.id.navigation_view);
         rvThuChi = findViewById(R.id.rvThuChi);
+        bell = findViewById(R.id.notification_button); // xuandong
+
         btnUser = findViewById(R.id.btnUser);
         searchView = findViewById(R.id.search_view);
+      
         setSupportActionBar(toolbar);
+
     }
 
     //set up click cho icon user sang màn hình thông tin cá nhân
@@ -136,8 +148,11 @@ public class MainActivity extends AppCompatActivity {
         }
         else if(itemId == R.id.nav_view_categories){
             startActivity(new Intent(this, AddCategoryActivity.class));
+        } else if (itemId == R.id.nav_statistics) {
+            startActivity(new Intent(this, ReportTransaction.class));
+        } else if(itemId == R.id.nav_budget) {
+            startActivity(new Intent(this, SetBudgets.class));
         }
-
     }
 //    set up cho ô tìm kiếm
     public void setupSearch(){
@@ -286,5 +301,16 @@ public class MainActivity extends AppCompatActivity {
                 doubleBackToExitPressedOnce = false, 3000);
     }
 
-
+    /**
+     * Notification
+     */
+    private void navigateNotification() {
+        bell.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, notification_user.class);
+                startActivity(intent);
+            }
+        });
+    }
 }
