@@ -44,7 +44,7 @@ public class NotificationDAO {
                 null,
                 null,
                 null,
-                DatabaseContract.Notifications.COLUMN_CREATE_AT + "DESC"
+                DatabaseContract.Notifications.COLUMN_CREATE_AT + " DESC"
         );
 
         if (cursor.moveToFirst()) {
@@ -76,7 +76,7 @@ public class NotificationDAO {
                 selectionArgs,
                 null,
                 null,
-                DatabaseContract.Notifications.COLUMN_CREATE_AT + "DESC"
+                DatabaseContract.Notifications.COLUMN_CREATE_AT + " DESC"
         );
         if (cursor.moveToFirst()) {
             do {
@@ -109,7 +109,7 @@ public class NotificationDAO {
                 selectionArgs,
                 null,
                 null,
-                DatabaseContract.Notifications.COLUMN_CREATE_AT + "DESC"
+                DatabaseContract.Notifications.COLUMN_CREATE_AT + " DESC"
         );
         if (cursor.moveToFirst()) {
             do {

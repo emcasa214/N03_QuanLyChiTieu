@@ -2,98 +2,72 @@ package com.example.n03_quanlychitieu.ui.sign;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.AutoCompleteTextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.n03_quanlychitieu.R;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.example.n03_quanlychitieu.adapter.BudgetAdapter;
+import com.example.n03_quanlychitieu.dao.BudgetDAO;
+import com.example.n03_quanlychitieu.dao.CategoryDAO;
+import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Budgets;
+import com.example.n03_quanlychitieu.model.Categories;
+import com.example.n03_quanlychitieu.utils.AuthenticationManager;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 
-public class SetBudgets extends AppCompatActivity {
-    private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Locale;
+
+public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBudgetClickListener {
+
+    private AuthenticationManager authManager;
+    private BudgetDAO budgetDAO;
+    private CategoryDAO categoryDAO;
+    private String currentUserId;
+
+    private TextInputEditText etBudgetName, etAmount, etStartDate, etEndDate, etDescription;
+    private AutoCompleteTextView actvCategory;
+    private MaterialButton btnSave;
+    private RecyclerView rvBudgets;
+    private View emptyView;
+
+    private BudgetAdapter budgetAdapter;
+    private List<Budgets> budgetsList = new ArrayList<>();
+    private List<Categories> categories = new ArrayList<>();
+
+    private final Calendar calendar = Calendar.getInstance();
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_set_budget);
 
-        // Thiết lập BottomSheetBehavior
-        LinearLayout bottomSheet = findViewById(R.id.bottom_sheet);
-//        if (bottomSheet != null) {
-//            bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-//            // Các cài đặt behavior khác...
-//        }
-//        // Cấu hình behavior
-//        bottomSheetBehavior.setHideable(false); // Không cho ẩn hoàn toaàn
-//        bottomSheetBehavior.setPeekHeight(120); // Chiều cao tối thiểu khi thu gọn (120dp)
-//        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED); // Trang thái ban đầu
-//
-//        // Thiết lập callback
-//        bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-//            @Override
-//            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-//                switch (newState) {
-//                    case BottomSheetBehavior.STATE_COLLAPSED:
-//                        // Trạng thái thu goọn
-//                        break;
-//                    case BottomSheetBehavior.STATE_EXPANDED:
-//                        // Trạng thái mở rộng
-//                        break;
-//                    case BottomSheetBehavior.STATE_DRAGGING:
-//                    case BottomSheetBehavior.STATE_SETTLING:
-//                        // Đang kéo hoặc đang ổn định
-//                        break;
-//                }
-//            }
-//
-//            @Override
-//            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-//                // Xử lý hiệu ứng trong quá trình kéo
-//            }
-//        });
+        // Init auth
+        authManager = AuthenticationManager.getInstance(this);
+        if (!authManager.isUserLoggedIn()) {
+            finish();
+            return;
+        }
+        currentUserId = authManager.getCurrentUser().getUser_id();
 
-        // Thiết lập RecyclerView
-
-        // Xử lý sự kiện nút lưu
-//        findViewById(R.id.btn_save).setOnClickListener(v ->);
+        // Init db
+//        DatabaseHelper dbHelper = new
     }
 
-//    private void setupRecyclerView() {
-//        RecyclerView recyclerView = findViewById(R.id.rv_budgets);
-//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-//
-//        // Giả sử bạn có BudgetAdapter
-//        BudgetAdapter adapter = new BudgetAdapter(getBudgets());
-//        recyclerView.setAdapter(adapter);
-//
-//        // Hiển thị empty view nếu không có dữ liệu
-//        updateEmptyView();
-//    }
+    @Override
+    public void onBudgetClick(Budgets budget) {
 
-    //    private void updateEmptyView() {
-//        boolean isEmpty = getBudgets().isEmpty();
-//        findViewById(R.id.empty_view).setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-//        findViewById(R.id.rv_budgets).setVisibility(isEmpty ? View.GONE : View.VISIBLE);
-//    }
-//
-//    private List<Budget> getBudgets() {
-//        // Lấy danh sách giới hạn từ database
-//        return budgetDao.getBudgetsByUser(currentUserId);
-//    }
-//
-//    private void saveBudget() {
-//        // Xử lý lưu giới hạn mới
-//        // Sau khi lưu thành công:
-//        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-//        updateRecyclerView();
-//    }
-//    private void updateRecyclerView() {
-//        BudgetAdapter adapter = (BudgetAdapter) ((RecyclerView) findViewById(R.id.rv_budgets)).getAdapter();
-//        adapter.updateData(getBudgets());
-//        updateEmptyView();
-//    }
+    }
+
+    @Override
+    public void onBudgetLongClick(Budgets budget) {
+
+    }
 }

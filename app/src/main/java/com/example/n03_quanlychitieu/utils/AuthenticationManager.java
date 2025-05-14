@@ -12,7 +12,6 @@ public class AuthenticationManager {
 
     private AuthenticationManager(Context context) {
         sharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE);
-
     }
 
     public static synchronized AuthenticationManager getInstance(Context context) {
