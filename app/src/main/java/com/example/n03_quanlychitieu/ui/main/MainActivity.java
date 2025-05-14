@@ -70,14 +70,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         dbHelper = new DatabaseHelper(this);
+//        dbHelper.getReadableDatabase();
 
+        dbHelper.insertSampleData();
         khoitao();
         toggle();
         menuClick();
-//        setupRecyclerView();
-//        takeListView();
+        setupRecyclerView();
+        takeListView();
         setClickUser();
-//        setupSearch();
+        setupSearch();
     }
 
     public void khoitao(){
@@ -135,120 +137,120 @@ public class MainActivity extends AppCompatActivity {
 
     }
 //    set up cho ô tìm kiếm
-//    public void setupSearch(){
-//        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String query) {
-//                searchListView(query);
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String newText) {
-//                if (newText.isEmpty()) {
-//                    takeListView(); // Hiển thị lại toàn bộ khi xóa tìm kiếm
-//                } else {
-//                    searchListView(newText);
-//                }
-//                return true;
-//            }
-//        });
-//    }
-//    private void searchListView(String keyword) {
-//        new Thread(() -> {
-//            SQLiteDatabase db = dbHelper.getReadableDatabase();
-//            ArrayList<String> temp = new ArrayList<>();
-//
-//            // Tìm kiếm trong Incomes
-//            Cursor cIn = db.rawQuery(
-//                    "SELECT description, amount, create_at FROM Incomes WHERE description LIKE ?",
-//                    new String[]{"%" + keyword + "%"});
-//            while (cIn.moveToNext()) {
-//                String d = cIn.getString(0);
-//                double a = cIn.getDouble(1);
-//                String date = cIn.getString(2);
-//                long amountInt = (long) a;
-//                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
-//            }
-//            cIn.close();
-//
-//            // Tìm kiếm trong Expenses
-//            Cursor cEx = db.rawQuery(
-//                    "SELECT description, amount, create_at FROM Expenses WHERE description LIKE ?",
-//                    new String[]{"%" + keyword + "%"});
-//            while (cEx.moveToNext()) {
-//                String d = cEx.getString(0);
-//                double a = cEx.getDouble(1);
-//                String date = cEx.getString(2);
-//                long amountInt = (long) a;
-//                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
-//            }
-//            cEx.close();
-//
-//            // Sắp xếp theo thời gian giảm dần
-//            Collections.sort(temp, (s1, s2) -> {
-//                String date1 = s1.split(" - ")[0];
-//                String date2 = s2.split(" - ")[0];
-//                return date2.compareTo(date1);
-//            });
-//
-//            runOnUiThread(() -> {
-//                listThuChistr.clear();
-//                listThuChistr.addAll(temp);
-//                adapter.notifyDataSetChanged();
-//            });
-//        }).start();
-//    }
+    public void setupSearch(){
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchListView(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.isEmpty()) {
+                    takeListView(); // Hiển thị lại toàn bộ khi xóa tìm kiếm
+                } else {
+                    searchListView(newText);
+                }
+                return true;
+            }
+        });
+    }
+    private void searchListView(String keyword) {
+        new Thread(() -> {
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            ArrayList<String> temp = new ArrayList<>();
+
+            // Tìm kiếm trong Incomes
+            Cursor cIn = db.rawQuery(
+                    "SELECT description, amount, create_at FROM Incomes WHERE description LIKE ?",
+                    new String[]{"%" + keyword + "%"});
+            while (cIn.moveToNext()) {
+                String d = cIn.getString(0);
+                double a = cIn.getDouble(1);
+                String date = cIn.getString(2);
+                long amountInt = (long) a;
+                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            }
+            cIn.close();
+
+            // Tìm kiếm trong Expenses
+            Cursor cEx = db.rawQuery(
+                    "SELECT description, amount, create_at FROM Expenses WHERE description LIKE ?",
+                    new String[]{"%" + keyword + "%"});
+            while (cEx.moveToNext()) {
+                String d = cEx.getString(0);
+                double a = cEx.getDouble(1);
+                String date = cEx.getString(2);
+                long amountInt = (long) a;
+                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            }
+            cEx.close();
+
+            // Sắp xếp theo thời gian giảm dần
+            Collections.sort(temp, (s1, s2) -> {
+                String date1 = s1.split(" - ")[0];
+                String date2 = s2.split(" - ")[0];
+                return date2.compareTo(date1);
+            });
+
+            runOnUiThread(() -> {
+                listThuChistr.clear();
+                listThuChistr.addAll(temp);
+                adapter.notifyDataSetChanged();
+            });
+        }).start();
+    }
 //    //hàm xử lý hiển thị 10 thu chi gần nhất vào Danh sách thu chi - 12/5/2025
-//    private void setupRecyclerView() {
-//        listThuChistr = new ArrayList<>();
-//        adapter = new ThuChiAdapter(listThuChistr);
-//        rvThuChi.setLayoutManager(new LinearLayoutManager(this));
-//        rvThuChi.setAdapter(adapter);
-//    }
-//    private void takeListView() {
-//        new Thread(() -> {
-//            SQLiteDatabase db = dbHelper.getReadableDatabase();
-//            ArrayList<String> temp = new ArrayList<>();
-//
-//            // Lấy dữ liệu và sắp xếp theo thời gian giảm dần (mới nhất trước)
-//            Cursor cIn = db.rawQuery(
-//                    "SELECT description, amount, create_at FROM Incomes", null);
-//            while (cIn.moveToNext()) {
-//                String d = cIn.getString(0);
-//                double a = cIn.getDouble(1);
-//                String date = cIn.getString(2);
-//                long amountInt = (long) a;
-//                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
-//            }
-//            cIn.close();
-//
-//            Cursor cEx = db.rawQuery(
-//                    "SELECT description, amount, create_at FROM Expenses", null);
-//            while (cEx.moveToNext()) {
-//                String d = cEx.getString(0);
-//                double a = cEx.getDouble(1);
-//                String date = cEx.getString(2);
-//                long amountInt = (long) a;
-//                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
-//            }
-//            cEx.close();
-//
-//            // Sắp xếp theo thời gian giảm dần (giả sử create_at có định dạng yyyy-MM-dd hoặc yyyy-MM-dd HH:mm:ss)
-//            Collections.sort(temp, (s1, s2) -> {
-//                String date1 = s1.split(" - ")[0];
-//                String date2 = s2.split(" - ")[0];
-//                return date2.compareTo(date1); // giảm dần
-//            });
-//
-//            // Cập nhật RecyclerView
-//            runOnUiThread(() -> {
-//                listThuChistr.clear();
-//                listThuChistr.addAll(temp);
-//                adapter.notifyDataSetChanged();
-//            });
-//        }).start();
-//    }
+    private void setupRecyclerView() {
+        listThuChistr = new ArrayList<>();
+        adapter = new ThuChiAdapter(listThuChistr);
+        rvThuChi.setLayoutManager(new LinearLayoutManager(this));
+        rvThuChi.setAdapter(adapter);
+    }
+    private void takeListView() {
+        new Thread(() -> {
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            ArrayList<String> temp = new ArrayList<>();
+
+            // Lấy dữ liệu và sắp xếp theo thời gian giảm dần (mới nhất trước)
+            Cursor cIn = db.rawQuery(
+                    "SELECT description, amount, create_at FROM Incomes", null);
+            while (cIn.moveToNext()) {
+                String d = cIn.getString(0);
+                double a = cIn.getDouble(1);
+                String date = cIn.getString(2);
+                long amountInt = (long) a;
+                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            }
+            cIn.close();
+
+            Cursor cEx = db.rawQuery(
+                    "SELECT description, amount, create_at FROM Expenses", null);
+            while (cEx.moveToNext()) {
+                String d = cEx.getString(0);
+                double a = cEx.getDouble(1);
+                String date = cEx.getString(2);
+                long amountInt = (long) a;
+                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            }
+            cEx.close();
+
+            // Sắp xếp theo thời gian giảm dần (giả sử create_at có định dạng yyyy-MM-dd hoặc yyyy-MM-dd HH:mm:ss)
+            Collections.sort(temp, (s1, s2) -> {
+                String date1 = s1.split(" - ")[0];
+                String date2 = s2.split(" - ")[0];
+                return date2.compareTo(date1); // giảm dần
+            });
+
+            // Cập nhật RecyclerView
+            runOnUiThread(() -> {
+                listThuChistr.clear();
+                listThuChistr.addAll(temp);
+                adapter.notifyDataSetChanged();
+            });
+        }).start();
+    }
 
 
 //    @Override

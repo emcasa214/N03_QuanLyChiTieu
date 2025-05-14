@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.example.n03_quanlychitieu.model.Users;
 
@@ -27,7 +28,7 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "fin_manager.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -47,21 +48,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(DatabaseContract.Budgets.CREATE_TABLE);
         db.execSQL(DatabaseContract.Incomes.CREATE_TABLE);
         db.execSQL(DatabaseContract.Expenses.CREATE_TABLE);
-
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-//        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Expenses.TABLE_NAME);
-//        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Incomes.TABLE_NAME);
-//        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Budgets.TABLE_NAME);
-//        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Notifications.TABLE_NAME);
-//        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Categories.TABLE_NAME);
-//        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Users.TABLE_NAME);
-//        onCreate(db);
-        if (oldVersion < 2) { // Giả sử phiên bản mới là 2
-            db.execSQL("ALTER TABLE Categories ADD COLUMN user_id TEXT");
-        }
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Expenses.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Incomes.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Budgets.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Notifications.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Categories.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + DatabaseContract.Users.TABLE_NAME);
+        onCreate(db);
     }
 
     // *** User handle query ***
@@ -197,6 +194,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 });
 
             } catch (Exception e) {
+                Log.e("DatabaseHelper", "Error opening/querying DB", e);
                 new Handler(Looper.getMainLooper()).post(() -> {
                     callback.onError("Database error: " + e.getMessage());
                 });
@@ -252,25 +250,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         // Chèn Categories
         db.execSQL("INSERT OR IGNORE INTO Categories (category_id, name, icon, color, type, user_id) VALUES " +
-                "('cat1', 'Ăn uống', 'ic_food', '#FF5722', 'expense', '4e4d03ae-905e-4f34-a12b-33dc848dfb3b')," +
-                "('cat2', 'Lương', 'ic_salary', '#4CAF50', 'income', '4e4d03ae-905e-4f34-a12b-33dc848dfb3b');");
+                "('cat1', 'Ăn uống', 'ic_food', '#FF5722', 'expense', '6cc204cb-95b7-4e7d-9b55-5e088834f033')," +
+                "('cat2', 'Lương', 'ic_salary', '#4CAF50', 'income', '6cc204cb-95b7-4e7d-9b55-5e088834f033');");
 
         // Chèn Budgets
-        db.execSQL("INSERT OR IGNORE INTO Budgets (budget_id, user_id, category_id, amount, start_date, end_date) VALUES " +
-                "('bud1', '4e4d03ae-905e-4f34-a12b-33dc848dfb3b', 'cat1', 2000000, '2025-05-01', '2025-05-31');");
+        db.execSQL("INSERT OR IGNORE INTO Budgets (budget_id, amount, start_date, end_date, description, user_id, category_id) VALUES " +
+                "('bud1', 2000000, '2025-05-01', '2025-05-31', 'Shopping' ,'6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1');");
 
         // Chèn Expenses
-        db.execSQL("INSERT OR IGNORE INTO Expenses (expense_id, user_id, category_id, budget_id, amount, description, create_at) VALUES " +
-                "('exp1', '4e4d03ae-905e-4f34-a12b-33dc848dfb3b', 'cat1', 'bud1', 50000, 'Ăn sáng', '2025-05-02')," +
-                "('exp2', '4e4d03ae-905e-4f34-a12b-33dc848dfb3b', 'cat1', 'bud1', 120000, 'Ăn trưa', '2025-05-05');");
+        db.execSQL("INSERT OR IGNORE INTO Expenses (expense_id, amount, description, create_at, user_id, category_id, budget_id) VALUES " +
+                "('exp1', 50000, 'Ăn sáng', '2025-05-02', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1', 'bud1')," +
+                "('exp2', 120000, 'Ăn trưa', '2025-05-05', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1', 'bud1');");
 
         // Chèn Incomes
-        db.execSQL("INSERT OR IGNORE INTO Incomes (income_id, user_id, category_id, amount, description, create_at) VALUES " +
-                "('inc1', '4e4d03ae-905e-4f34-a12b-33dc848dfb3b', 'cat2', 10000000, 'Lương tháng 5', '2025-05-01');");
+        db.execSQL("INSERT OR IGNORE INTO Incomes (income_id, amount, description, create_at, user_id, category_id) VALUES " +
+                "('inc1', 10000000, 'Lương tháng 5', '2025-05-01', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat2');");
 
         // Chèn Notifications
-        db.execSQL("INSERT OR IGNORE INTO Notifications (notification_id, user_id, title, content, created_at) VALUES " +
-                "('noti1', '4e4d03ae-905e-4f34-a12b-33dc848dfb3b', 'Nhắc nhở chi tiêu', 'Bạn đã chi tiêu vượt ngân sách!', '2025-05-15 08:00:00');");
+//        db.execSQL("INSERT OR IGNORE INTO Notifications (notification_id, content, is_read, created_at, notification_type, user_id) VALUES " +
+//                "('noti1', 'Bạn đã chi tiêu vượt ngân sách!', 0, '2025-05-15 08:00:00', 'warn', '6cc204cb-95b7-4e7d-9b55-5e088834f033');");
 
         db.close();
     }

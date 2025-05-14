@@ -4,7 +4,7 @@ public class DatabaseContract {
     private DatabaseContract() {}
     public static class Database {
         public static final String DATABASE_NAME = "fin_manager.db";
-        public static final int DATABASE_VERSION = 1;
+        public static final int DATABASE_VERSION = 3;
     }
     public static class Users {
         public static final String TABLE_NAME = "users";
@@ -38,7 +38,7 @@ public class DatabaseContract {
                         COLUMN_NAME + " TEXT NOT NULL, " +
                         COLUMN_ICON + " TEXT, " +
                         COLUMN_COLOR + " TEXT, " +
-                        COLUMN_TYPE + " TEXT NOT NULL CHECK(" + COLUMN_TYPE + " IN ('income','expense'))" +
+                        COLUMN_TYPE + " TEXT NOT NULL CHECK(" + COLUMN_TYPE + " IN ('income','expense'))," +
                         COLUMN_USER_ID + " TEXT NOT NULL, " +
                         "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " +
                         Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE" +
