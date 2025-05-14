@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         dbHelper = new DatabaseHelper(this);
 //        dbHelper.getReadableDatabase();
 
-        dbHelper.insertSampleData();
+//        dbHelper.insertSampleData();
         khoitao();
         toggle();
         menuClick();

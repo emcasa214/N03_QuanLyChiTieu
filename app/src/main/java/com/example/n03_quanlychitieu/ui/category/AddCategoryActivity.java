@@ -136,7 +136,7 @@ public class AddCategoryActivity extends AppCompatActivity implements EditCatego
                         if (iconResId != 0) {
                             android.graphics.drawable.Drawable iconDrawable = getResources().getDrawable(iconResId, null);
                             if (iconDrawable != null) {
-                                int sizeInPx = (int) (32 * getResources().getDisplayMetrics().density);
+                                int sizeInPx = (int) (16 * getResources().getDisplayMetrics().density);
                                 iconDrawable.setBounds(0, 0, sizeInPx, sizeInPx);
                                 holder.txtNguonTien.setCompoundDrawables(iconDrawable, null, null, null);
                                 holder.txtNguonTien.setCompoundDrawablePadding((int) (8 * getResources().getDisplayMetrics().density));
