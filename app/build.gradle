@@ -22,6 +22,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/NOTICE.md'
+        }
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/NOTICE.md'
+            excludes += '/META-INF/LICENSE.md'
+        }
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -41,6 +52,8 @@ dependencies {
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
     implementation 'com.github.yukuku:ambilwarna:2.0.1'
+    implementation 'com.sun.mail:android-mail:1.6.7'
+    implementation 'com.sun.mail:android-activation:1.6.7'
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

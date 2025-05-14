@@ -2,6 +2,7 @@ package com.example.n03_quanlychitieu.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.example.n03_quanlychitieu.model.Users;
 
@@ -9,6 +10,8 @@ public class AuthenticationManager {
     private static AuthenticationManager instance;
     private SharedPreferences sharedPreferences;
     private Users currentUser;
+
+
 
     private AuthenticationManager(Context context) {
         sharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE);
@@ -57,5 +60,9 @@ public class AuthenticationManager {
         editor.clear();
         editor.apply();
         currentUser = null;
+    }
+
+    // Cập nhật thông tin người dùng hiện tại
+    public void setCurrentUser(Users user) {
     }
 }

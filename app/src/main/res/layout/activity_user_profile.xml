@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="20dp"
+        android:paddingLeft="10dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="50dp"
+            android:gravity="center_vertical">
+
+            <!-- Nút quay lại bên trái -->
+            <ImageButton
+                android:id="@+id/btnQuayLai"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="4dp"
+                android:src="@drawable/icreturn"
+                android:scaleType="centerInside"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <!-- TextView ở giữa chiếm không gian còn lại -->
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Thông Tin Cá Nhân"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- Nút thêm bên phải -->
+            <ImageButton
+                android:id="@+id/btnSua"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="4dp"
+                android:src="@drawable/icupdate"
+                android:scaleType="centerInside"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="50dp"
+            android:text="Username"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="50dp"
+            android:text="Email"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btnMK"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đổi mật khẩu" />
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
