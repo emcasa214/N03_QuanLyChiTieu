@@ -48,13 +48,6 @@ public class BeginActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//
-//        Log.d("BeginActivity", "User is not logged in, staying on BeginActivity");
-//        btnSignup.setVisibility(View.VISIBLE);
-//        btnLogin.setVisibility(View.VISIBLE);
-//        overlay.setVisibility(View.GONE);
-//        animationView.setVisibility(View.GONE);
-//        animationView.cancelAnimation();
 
         // Kiểm tra trạng thái đăng nhập
         if (AuthenticationManager.getInstance(this).isUserLoggedIn()) {
@@ -118,7 +111,7 @@ public class BeginActivity extends AppCompatActivity {
             Intent intent = new Intent(BeginActivity.this, destination);
             startActivity(intent);
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-        }, 1000); // Thời gian đủ để animation chạy
+        }, 2000); // Thời gian đủ để animation chạy
     }
 
     //    Nhấn back 2 lần để thoát ứng dung

@@ -37,6 +37,7 @@
         <activity android:name=".ui.sign.notification_user"/>
         <activity android:name=".ui.sign.ReportTransaction"/>
         <activity android:name=".ui.sign.SetBudgets"/>
+        <activity android:name=".ui.sign.ForgotPassword"/>
 <!--        Google-->
         <meta-data
             android:name="com.google.android.gms.version"

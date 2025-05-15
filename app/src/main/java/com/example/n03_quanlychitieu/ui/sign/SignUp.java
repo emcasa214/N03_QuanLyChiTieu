@@ -16,6 +16,7 @@ import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.main.MainActivity;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
+import com.example.n03_quanlychitieu.utils.EmailSender;
 
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -28,8 +29,10 @@ public class SignUp extends AppCompatActivity {
     private EditText etUsername, etEmail, etPassword, etConfirmPassword;
     private Button btnSignUp;
     private ProgressBar progressBar;
-
     private View overlay;
+    private GetOtp verifyOtp;
+    private EmailSender emailSender;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,13 +47,15 @@ public class SignUp extends AppCompatActivity {
         progressBar = findViewById(R.id.progress_bar);
         btnSignUp = findViewById(R.id.btnSignUp);
         overlay = findViewById(R.id.overlay_signup);
+        verifyOtp = new GetOtp();
+        emailSender = new EmailSender();
 
         btnSignUp.setOnClickListener(v -> {
             showLoading();
             new Handler().postDelayed(() -> {
                 hideLoading();
                 registerUser();
-            }, 2000);
+            }, 1000);
         });
 
         // Handle event
@@ -66,6 +71,7 @@ public class SignUp extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
+
     // Khi ẩn loading
     private void hideLoading() {
         overlay.setVisibility(View.GONE);
@@ -168,6 +174,29 @@ public class SignUp extends AppCompatActivity {
         });
     }
 
+    public void generateAndSendOtp(String email) {
+        // Generate 6-digit OTP
+
+        String generatedOtp = String.valueOf(100000 + (int)(Math.random()*900000));
+        String subject = "Mã xác nhận từ Quản Lý Chi Tiêu";
+        String body = "Mã xác nhận của bạn: " + generatedOtp;
+
+        new Thread(() -> {
+            try {
+                emailSender.sendEmail(email, subject, body);
+                runOnUiThread(() -> {
+                    hideLoading();
+                    verifyOtp.navigateToVerifyOtpScreen(email, generatedOtp, true);
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    hideLoading();
+                    Toast.makeText(SignUp.this, "Failed to send OTP: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        }).start();
+    }
+
     private void handleAutoLogin(String usernameOrEmail, String password) {
         db.getUserAsync(usernameOrEmail, password, new DatabaseHelper.GetUserCallback() {
             @Override
@@ -196,7 +225,7 @@ public class SignUp extends AppCompatActivity {
         });
     }
 
-    private boolean isValidPassword(String password) {
+    public boolean isValidPassword(String password) {
         // Regex kiểm tra:
         // - Ít nhất 1 ký tự đặc biệt (!@#$%^&*()_+)
         // - Ít nhất 1 chữ hoa (A-Z)
@@ -207,7 +236,7 @@ public class SignUp extends AppCompatActivity {
 
         return password.matches(passwordPattern);
     }
-    private String hashPassword(String rawPassword) {
+    public String hashPassword(String rawPassword) {
         return BCrypt.withDefaults().hashToString(12, rawPassword.toCharArray());
     }
 
