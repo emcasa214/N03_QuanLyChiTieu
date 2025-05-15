@@ -63,5 +63,11 @@ public class AuthenticationManager {
 
     // Cập nhật thông tin người dùng hiện tại
     public void setCurrentUser(Users user) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("username", user.getUsername());
+        editor.putString("email", user.getEmail());
+        editor.putString("avatar_url", user.getAvatar_url());
+
+        editor.apply();
     }
 }

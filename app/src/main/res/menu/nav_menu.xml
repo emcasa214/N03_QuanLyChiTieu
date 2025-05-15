@@ -24,4 +24,5 @@
         android:id="@+id/nav_statistics"
         android:title="Thống Kê"
         android:icon="@android:drawable/ic_menu_agenda" />
+
 </menu>

@@ -1,10 +1,17 @@
 package com.example.n03_quanlychitieu.ui.sign;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.n03_quanlychitieu.R;
@@ -15,6 +22,7 @@ import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.model.Budgets;
 import com.example.n03_quanlychitieu.model.Categories;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -36,6 +44,8 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     private MaterialButton btnSave;
     private RecyclerView rvBudgets;
     private View emptyView;
+    private LinearLayout bottomSheet;
+    private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
 
     private BudgetAdapter budgetAdapter;
     private List<Budgets> budgetsList = new ArrayList<>();
@@ -49,7 +59,7 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_set_budget);
 
-        // Init auth
+        // Initialize authentication
         authManager = AuthenticationManager.getInstance(this);
         if (!authManager.isUserLoggedIn()) {
             finish();
@@ -57,17 +67,259 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
         }
         currentUserId = authManager.getCurrentUser().getUser_id();
 
-        // Init db
-//        DatabaseHelper dbHelper = new
+        // Initialize database
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        budgetDAO = new BudgetDAO(dbHelper.getWritableDatabase());
+        categoryDAO = new CategoryDAO(dbHelper.getWritableDatabase());
+
+        // Initialize views
+        initViews();
+
+        // Setup bottom sheet behavior
+        setupBottomSheet();
+
+        // Setup category dropdown
+        setupCategoryDropdown();
+
+        // Setup date pickers
+        setupDatePickers();
+
+        // Setup recycler view
+        setupRecyclerView();
+
+        // Load budgets
+        loadBudgets();
+
+        // Set save button click listener
+        btnSave.setOnClickListener(v -> saveBudget());
+    }
+
+    private void initViews() {
+        etBudgetName = findViewById(R.id.budget_name);
+        actvCategory = findViewById(R.id.actv_category);
+        etAmount = findViewById(R.id.et_amount);
+        etStartDate = findViewById(R.id.et_start_date);
+        etEndDate = findViewById(R.id.et_end_date);
+        etDescription = findViewById(R.id.et_description);
+        btnSave = findViewById(R.id.btn_save);
+        rvBudgets = findViewById(R.id.rv_budgets);
+        emptyView = findViewById(R.id.empty_view);
+        bottomSheet = findViewById(R.id.bottom_sheet);
+    }
+
+    private void setupBottomSheet() {
+        // Get the BottomSheetBehavior
+        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+
+        // Set the initial state
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+
+        // Set the peek height (the height of the bottom sheet when collapsed)
+        bottomSheetBehavior.setPeekHeight(200); // in pixels
+
+        // Make sure the bottom sheet is not hideable
+        bottomSheetBehavior.setHideable(false);
+
+        // Set bottom sheet callback
+        bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_EXPANDED:
+                        // Fully expanded
+                        break;
+                    case BottomSheetBehavior.STATE_COLLAPSED:
+                        // Collapsed to peek height
+                        break;
+                    case BottomSheetBehavior.STATE_DRAGGING:
+                        // User is dragging
+                        break;
+                    case BottomSheetBehavior.STATE_SETTLING:
+                        // Settling to final position
+                        break;
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                        // Hidden (shouldn't happen as we set hideable to false)
+                        break;
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                // Called when the bottom sheet is sliding
+            }
+        });
+    }
+
+    private void setupCategoryDropdown() {
+        categories = categoryDAO.getAllCategories(currentUserId);
+        List<String> categoryNames = new ArrayList<>();
+        for (Categories category : categories) {
+            categoryNames.add(category.getName());
+        }
+
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                categoryNames
+        );
+        actvCategory.setAdapter(categoryAdapter);
+    }
+
+    private void setupDatePickers() {
+        DatePickerDialog.OnDateSetListener startDateListener = (view, year, month, dayOfMonth) -> {
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            etStartDate.setText(dateFormat.format(calendar.getTime()));
+        };
+
+        DatePickerDialog.OnDateSetListener endDateListener = (view, year, month, dayOfMonth) -> {
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            etEndDate.setText(dateFormat.format(calendar.getTime()));
+        };
+
+        etStartDate.setOnClickListener(v -> new DatePickerDialog(
+                SetBudgets.this,
+                startDateListener,
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        ).show());
+
+        etEndDate.setOnClickListener(v -> new DatePickerDialog(
+                SetBudgets.this,
+                endDateListener,
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        ).show());
+    }
+
+    private void setupRecyclerView() {
+        budgetAdapter = new BudgetAdapter(this, budgetsList, this);
+        rvBudgets.setLayoutManager(new LinearLayoutManager(this));
+        rvBudgets.setAdapter(budgetAdapter);
+    }
+
+    private void loadBudgets() {
+        budgetsList.clear();
+        budgetsList.addAll(budgetDAO.getBudgetsByUser(currentUserId));
+        budgetAdapter.updateData(budgetsList);
+
+        // Show empty view if no budgets
+        if (budgetsList.isEmpty()) {
+            emptyView.setVisibility(View.VISIBLE);
+            rvBudgets.setVisibility(View.GONE);
+        } else {
+            emptyView.setVisibility(View.GONE);
+            rvBudgets.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void saveBudget() {
+        // Validate inputs
+        String name = etBudgetName.getText().toString().trim();
+        String categoryName = actvCategory.getText().toString().trim();
+        String amountStr = etAmount.getText().toString().trim();
+        String startDate = etStartDate.getText().toString().trim();
+        String endDate = etEndDate.getText().toString().trim();
+        String description = etDescription.getText().toString().trim();
+
+        if (name.isEmpty()) {
+            etBudgetName.setError("Vui lòng nhập tên giới hạn");
+            return;
+        }
+
+        if (categoryName.isEmpty()) {
+            actvCategory.setError("Vui lòng chọn danh mục");
+            return;
+        }
+
+        if (amountStr.isEmpty()) {
+            etAmount.setError("Vui lòng nhập số tiền");
+            return;
+        }
+
+        if (startDate.isEmpty()) {
+            etStartDate.setError("Vui lòng chọn ngày bắt đầu");
+            return;
+        }
+
+        if (endDate.isEmpty()) {
+            etEndDate.setError("Vui lòng chọn ngày kết thúc");
+            return;
+        }
+
+        double amount;
+        try {
+            amount = Double.parseDouble(amountStr);
+        } catch (NumberFormatException e) {
+            etAmount.setError("Số tiền không hợp lệ");
+            return;
+        }
+
+        // Find category ID
+        String categoryId = null;
+        for (Categories category : categories) {
+            if (category.getName().equals(categoryName)) {
+                categoryId = category.getCategory_id();
+                break;
+            }
+        }
+
+        if (categoryId == null) {
+            Toast.makeText(this, "Danh mục không tồn tại", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Create new budget
+        Budgets newBudget = new Budgets();
+        newBudget.setBudget_id(generateBudgetId());
+        newBudget.setAmount(amount);
+        newBudget.setStart_date(startDate);
+        newBudget.setEnd_date(endDate);
+        newBudget.setDescription(description);
+        newBudget.setUser_id(currentUserId);
+        newBudget.setCategory_id(categoryId);
+
+        // Save to database
+        long result = budgetDAO.insert(newBudget);
+        if (result != -1) {
+            Toast.makeText(this, "Đã lưu giới hạn chi tiêu", Toast.LENGTH_SHORT).show();
+            clearForm();
+            loadBudgets();
+
+            // Expand the bottom sheet to show the new budget
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        } else {
+            Toast.makeText(this, "Lỗi khi lưu giới hạn", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String generateBudgetId() {
+        return "BUD_" + System.currentTimeMillis();
+    }
+
+    private void clearForm() {
+        etBudgetName.setText("");
+        actvCategory.setText("");
+        etAmount.setText("");
+        etStartDate.setText("");
+        etEndDate.setText("");
+        etDescription.setText("");
     }
 
     @Override
     public void onBudgetClick(Budgets budget) {
-
+        // Handle budget click (e.g., show edit dialog)
+        Toast.makeText(this, "Clicked: " + budget.getDescription(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onBudgetLongClick(Budgets budget) {
-
+        // Handle long click (e.g., delete budget)
+        Toast.makeText(this, "Long clicked: " + budget.getDescription(), Toast.LENGTH_SHORT).show();
     }
 }
