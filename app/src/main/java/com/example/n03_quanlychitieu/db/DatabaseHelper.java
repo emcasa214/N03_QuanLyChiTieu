@@ -253,6 +253,57 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return stored;
     }
+    public Boolean updateUser(String id, String name, String gmail){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("username", name);
+        contentValues.put("email", gmail);
+        long result = db.update("Users", contentValues, "user_id = ?", new String[]{id});
+        if (result == -1){
+            return false;
+        }
+        return true;
+    }
+    public void checkUserForUpdate(String userId, String username, String email, UserCheckCallback callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try (SQLiteDatabase db = this.getReadableDatabase()) {
+                // Kiểm tra trùng username (ngoại trừ user hiện tại)
+                boolean usernameExists = checkFieldExistsForUpdate(db,
+                        DatabaseContract.Users.COLUMN_USERNAME, username, userId);
+
+                // Kiểm tra trùng email (ngoại trừ user hiện tại)
+                boolean emailExists = checkFieldExistsForUpdate(db,
+                        DatabaseContract.Users.COLUMN_EMAIL, email, userId);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (usernameExists) {
+                        callback.onUsernameExists();
+                    } else if (emailExists) {
+                        callback.onEmailExists();
+                    } else {
+                        callback.onAvailable();
+                    }
+                });
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError("Lỗi hệ thống: " + e.getMessage());
+                });
+            }
+        });
+    }
+    private boolean checkFieldExistsForUpdate(SQLiteDatabase db, String column, String value, String userId) {
+        Cursor cursor = db.query(
+                DatabaseContract.Users.TABLE_NAME,
+                new String[]{column},
+                column + " = ? AND user_id != ?", // Loại trừ user hiện tại
+                new String[]{value, userId},
+                null, null, null
+        );
+
+        boolean exists = (cursor != null && cursor.getCount() > 0);
+        if (cursor != null) cursor.close();
+        return exists;
+    }
     public void insertSampleData() {
         SQLiteDatabase db = this.getWritableDatabase();
 

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -27,10 +28,22 @@ import com.example.n03_quanlychitieu.utils.EmailSender;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 
 public class UserProfileActivity extends AppCompatActivity {
+    DatabaseHelper db = new DatabaseHelper(this);
     private TextView tvUsername, tvEmail;
     private ImageButton btnBack, btnEdit;
     private Button btnChangePw;
     private Users currentUser;
+
+    //component cua changeinfo
+    EditText edChangeGmail, edChangeName;
+    Button btnGui, btnHuy;
+
+    //component cua confirm pass
+    EditText edPassConfirmInfo;
+    Button btnLuuConfirm, btnHuyConfirm;
+
+    String id;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,19 +51,25 @@ public class UserProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_user_profile);
 
         initViews();
-        setupUserInfo();
+        refreshUserInfo();
         setupListeners();
+        onResume();
     }
 
     private void initViews() {
         tvUsername = findViewById(R.id.tvUsername);
         tvEmail = findViewById(R.id.tvEmail);
         btnBack = findViewById(R.id.btnQuayLai);
-//        btnEdit = findViewById(R.id.btnSua);
+        btnEdit = findViewById(R.id.btnSua);
         btnChangePw = findViewById(R.id.btnMK);
         currentUser = AuthenticationManager.getInstance(this).getCurrentUser();
+        id = currentUser.getUser_id();
     }
-
+    private void refreshUserInfo() {
+        currentUser = db.getUserById(id);
+        AuthenticationManager.getInstance(this).saveLoginState(currentUser);
+        setupUserInfo();
+    }
     private void setupUserInfo() {
         if (currentUser != null) {
             tvUsername.setText(currentUser.getUsername());
@@ -60,11 +79,101 @@ public class UserProfileActivity extends AppCompatActivity {
 
     private void setupListeners() {
         btnBack.setOnClickListener(v -> onBackPressed());
-//        btnEdit.setOnClickListener(v -> {
-//        });
+        btnEdit.setOnClickListener(v -> showChangeInfo());
         btnChangePw.setOnClickListener(v -> showChangePasswordDialog());
     }
+    private void showChangeInfo(){
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_changeinfo, null);
+        edChangeName = dialogView.findViewById(R.id.edChangeName);
+        edChangeGmail = dialogView.findViewById(R.id.edChangeGmail);
+        btnGui = dialogView.findViewById(R.id.btnGui);
+        btnHuy = dialogView.findViewById(R.id.btnHuy);
+        edChangeName.setText(currentUser.getUsername());
+        edChangeGmail.setText(currentUser.getEmail());
+        edChangeName.requestFocus();
 
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+        btnGui.setOnClickListener(v -> {
+            String name = edChangeName.getText().toString().trim();
+            String gmail = edChangeGmail.getText().toString().trim();
+            if (TextUtils.isEmpty(name) || TextUtils.isEmpty(gmail)) {
+                Toast.makeText(this, "Vui lòng điền đầy đủ thông tin.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (name.length() < 3) {
+                Toast.makeText(this, "Tên phải có ít nhất 3 ký tự.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (!Patterns.EMAIL_ADDRESS.matcher(gmail).matches()) {
+                Toast.makeText(this, "Email không hợp lệ.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            db.checkUserForUpdate(currentUser.getUser_id(), name, gmail, new DatabaseHelper.UserCheckCallback() {
+                @Override
+                public void onUsernameExists() {
+                    Toast.makeText(UserProfileActivity.this, "Tên người dùng đã tồn tại.", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onEmailExists() {
+                    Toast.makeText(UserProfileActivity.this, "Email đã tồn tại.", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onAvailable() {
+                    // Nếu không bị trùng, hiển thị dialog xác nhận mật khẩu
+                    showPasswordConfirmationDialog(name, gmail, dialog);
+                }
+
+                @Override
+                public void onError(String message) {
+                    Toast.makeText(UserProfileActivity.this, "Lỗi: " + message, Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+        btnHuy.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+
+    private void showPasswordConfirmationDialog(String name, String gmail, AlertDialog dialog) {
+        View passview = LayoutInflater.from(this).inflate(R.layout.dialog_confirmpassword, null);
+        edPassConfirmInfo = passview.findViewById(R.id.edPassConfirmInfo);
+        btnLuuConfirm = passview.findViewById(R.id.btnLuuConfirm);
+        btnHuyConfirm = passview.findViewById(R.id.btnHuyConfirm);
+        AlertDialog passdialog = new AlertDialog.Builder(this)
+                .setView(passview)
+                .setCancelable(false)
+                .create();
+        btnLuuConfirm.setOnClickListener(v1 -> {
+
+            String pass = edPassConfirmInfo.getText().toString().trim();
+
+            if (TextUtils.isEmpty(pass)) {
+                Toast.makeText(this, "Vui lòng điền đầy đủ thông tin.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (!checkCurrentPassword(pass)) {
+                Toast.makeText(this, "Mật khẩu hiện tại không đúng.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Boolean check = db.updateUser(id, name, gmail);
+            if (check) {
+                Toast.makeText(this, "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+                passdialog.dismiss();
+                refreshUserInfo();
+            }
+            else {
+                Toast.makeText(this, "Cập nhật thất bại!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        });
+        btnHuyConfirm.setOnClickListener(v12 -> passdialog.dismiss());
+        passdialog.show();
+    }
     private void showChangePasswordDialog() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_changepassword, null);
         EditText edtCurrent = dialogView.findViewById(R.id.edtHT);
@@ -179,5 +288,10 @@ public class UserProfileActivity extends AppCompatActivity {
 
     private interface VerificationCallback {
         void onVerified(String code);
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshUserInfo(); // Cập nhật thông tin người dùng và giao diện
     }
 }
