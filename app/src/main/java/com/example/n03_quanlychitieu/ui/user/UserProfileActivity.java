@@ -46,7 +46,7 @@ public class UserProfileActivity extends AppCompatActivity {
         tvUsername = findViewById(R.id.tvUsername);
         tvEmail = findViewById(R.id.tvEmail);
         btnBack = findViewById(R.id.btnQuayLai);
-        btnEdit = findViewById(R.id.btnSua);
+//        btnEdit = findViewById(R.id.btnSua);
         btnChangePw = findViewById(R.id.btnMK);
         currentUser = AuthenticationManager.getInstance(this).getCurrentUser();
     }
@@ -60,9 +60,8 @@ public class UserProfileActivity extends AppCompatActivity {
 
     private void setupListeners() {
         btnBack.setOnClickListener(v -> onBackPressed());
-        btnEdit.setOnClickListener(v -> {
-            // TODO: handle edit profile
-        });
+//        btnEdit.setOnClickListener(v -> {
+//        });
         btnChangePw.setOnClickListener(v -> showChangePasswordDialog());
     }
 
