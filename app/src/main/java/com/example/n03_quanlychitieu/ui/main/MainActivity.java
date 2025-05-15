@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -37,11 +38,13 @@ import com.example.n03_quanlychitieu.model.Incomes;
 import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
+import com.example.n03_quanlychitieu.ui.sign.BeginActivity;
 import com.example.n03_quanlychitieu.ui.sign.LogIn;
 import com.example.n03_quanlychitieu.ui.sign.ReportTransaction;
 import com.example.n03_quanlychitieu.ui.sign.SetBudgets;
 import com.example.n03_quanlychitieu.ui.sign.notification_user;
 import com.example.n03_quanlychitieu.ui.user.UserProfileActivity;
+import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.google.android.material.navigation.NavigationView;
 import com.example.n03_quanlychitieu.ui.income.ViewIncomeActivity;
 
@@ -69,7 +72,8 @@ public class MainActivity extends AppCompatActivity {
 
     ImageButton btnUser; // qtrang
 
-
+    TextView logout;
+    AuthenticationManager auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +95,16 @@ public class MainActivity extends AppCompatActivity {
 //        onBackPressed();
         navigateNotification();
 
+        auth = AuthenticationManager.getInstance(MainActivity.this);
+        logout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (auth.isUserLoggedIn()) {
+                    auth.logout();
+                    startActivity(new Intent(MainActivity.this, BeginActivity.class));
+                }
+            }
+        });
     }
 
     public void khoitao(){
@@ -99,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
         navView = findViewById(R.id.navigation_view);
         rvThuChi = findViewById(R.id.rvThuChi);
         bell = findViewById(R.id.notification_button); // xuandong
+        logout = findViewById(R.id.section_title3);
 
         btnUser = findViewById(R.id.btnUser);
         searchView = findViewById(R.id.search_view);

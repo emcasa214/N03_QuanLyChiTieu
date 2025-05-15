@@ -11,6 +11,7 @@
     android:paddingBottom="8dp">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/card_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="8dp"
@@ -18,38 +19,40 @@
         app:cardBackgroundColor="@color/white">
 
         <LinearLayout
+            android:id="@+id/main_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="16dp"
             android:background="?attr/selectableItemBackground">
 
-            <!-- Icon danh mục -->
+            <!-- Phần chung cho tất cả loại item -->
             <ImageView
-                android:id="@+id/iv_category_icon"
+                android:id="@+id/iv_icon"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginEnd="12dp"
-                android:contentDescription="Icon danh mục"/>
+                android:contentDescription="Icon"/>
 
-            <!-- Nội dung chính -->
+            <!-- Layout chính -->
             <LinearLayout
+                android:id="@+id/content_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tv_category_name"
+                    android:id="@+id/tv_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/black"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    tools:text="Ăn uống"/>
+                    tools:text="Tiêu đề"/>
 
                 <TextView
-                    android:id="@+id/tv_description"
+                    android:id="@+id/tv_subtitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
@@ -57,11 +60,12 @@
                     android:textSize="14sp"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    tools:text="Ăn trưa tại nhà hàng ABC"/>
+                    tools:text="Mô tả"/>
             </LinearLayout>
 
-            <!-- Số tiền và thời gian -->
+            <!-- Layout số tiền -->
             <LinearLayout
+                android:id="@+id/amount_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -74,7 +78,7 @@
                     android:textColor="#F44336"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    tools:text="- 150,000 đ"/>
+                    tools:text="0 đ"/>
 
                 <TextView
                     android:id="@+id/tv_time"
@@ -83,7 +87,15 @@
                     android:layout_marginTop="4dp"
                     android:textColor="#9E9E9E"
                     android:textSize="12sp"
-                    tools:text="10:30 - 12/05"/>
+                    tools:text="Thời gian"/>
+
+                <!-- Thêm PieChart nhỏ cho thống kê theo danh mục -->
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/mini_pie_chart"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="4dp"
+                    android:visibility="gone"/>
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

@@ -13,7 +13,7 @@ import java.util.List;
 public class BudgetDAO {
     private SQLiteDatabase db;
 
-    private BudgetDAO(SQLiteDatabase db) {
+    public BudgetDAO(SQLiteDatabase db) {
         this.db = db;
     }
 
