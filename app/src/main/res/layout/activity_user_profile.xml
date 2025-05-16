@@ -58,13 +58,45 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.appcompat.widget.Toolbar>
 
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardViewAvatar"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="24dp"
+        app:cardCornerRadius="100dp"
+        app:cardElevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+        <ImageView
+            android:id="@+id/imgAvatar"
+            android:layout_gravity="center"
+            android:layout_width="108dp"
+            android:layout_height="108dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_default_avatar" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Thêm nút chỉnh sửa avatar (hiển thị khi cần) -->
+    <ImageButton
+        android:id="@+id/btnEditAvatar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/circle_background"
+        android:padding="30dp"
+        android:src="@drawable/ic_camera"
+        android:translationZ="10dp"
+        app:layout_constraintBottom_toBottomOf="@id/cardViewAvatar"
+        app:layout_constraintEnd_toEndOf="@id/cardViewAvatar" />
+
     <!-- Thông tin người dùng -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardViewInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="180dp"
         android:layout_marginEnd="16dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="2dp"
@@ -77,6 +109,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
+
 
             <!-- Username -->
             <LinearLayout
@@ -214,3 +247,4 @@
         app:strokeWidth="1dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

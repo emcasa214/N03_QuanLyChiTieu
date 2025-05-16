@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- circle_background.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- Màu nền trắng -->
+    <solid android:color="#000"/>
+
+    <!-- Viền màu xám nhạt -->
+    <stroke
+        android:width="1dp"
+        android:color="#E0E0E0"/>
+
+    <!-- Kích thước cố định -->
+    <size
+        android:width="40dp"
+        android:height="40dp"/>
+</shape>
