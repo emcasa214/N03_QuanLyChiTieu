@@ -29,8 +29,9 @@
         <activity android:name=".ui.category.AddCategoryActivity" />
         <activity
             android:name=".ui.income.ViewIncomeActivity"
-            android:exported="false">
-        </activity>
+            android:exported="false"/>
+        <activity android:name=".ui.income.AddIncomeActivity"/>
+        <activity android:name=".ui.income.UpdateIncomeActivity" />
         <activity android:name=".ui.sign.GetOtp" />
         <activity android:name=".ui.sign.VerifyOtp" />
 
