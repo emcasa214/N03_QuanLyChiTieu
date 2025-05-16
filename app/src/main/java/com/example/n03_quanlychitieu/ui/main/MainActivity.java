@@ -60,7 +60,6 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     DatabaseHelper dbHelper;
-
     DrawerLayout drawerLayout;
     SearchView searchView;
     Toolbar toolbar;

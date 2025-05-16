@@ -353,7 +353,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * User handle query
      */
 
-    // Hàm này cần xem xét lại
     public Users getUserById(String userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Users user = null;

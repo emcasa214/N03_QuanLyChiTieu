@@ -2,8 +2,12 @@ package com.example.n03_quanlychitieu.ui.user;
 
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,13 +25,17 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.db.DatabaseContract;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.main.MainActivity;
 import com.example.n03_quanlychitieu.ui.sign.BeginActivity;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.utils.EmailSender;
+
+import java.io.IOException;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 
@@ -45,9 +54,12 @@ public class UserProfileActivity extends AppCompatActivity {
     //component cua confirm pass
     EditText edPassConfirmInfo;
     Button btnLuuConfirm, btnHuyConfirm;
-
     String id;
-
+    private static final int PICK_IMAGE_REQUEST = 1;
+    private ImageButton btnEditAvatar;
+    private ImageView imgAvatar;
+    private Uri avatarUri;
+    private Bitmap bitmap;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,6 +69,10 @@ public class UserProfileActivity extends AppCompatActivity {
         initViews();
         refreshUserInfo();
         setupListeners();
+
+        btnEditAvatar.setOnClickListener(v -> openImageChooser());
+
+
         onResume();
     }
 
@@ -67,6 +83,8 @@ public class UserProfileActivity extends AppCompatActivity {
         btnEdit = findViewById(R.id.btnSua);
         btnChangePw = findViewById(R.id.btnMK);
         btnDangXuat = findViewById(R.id.btnDangXuat);
+        btnEditAvatar = findViewById(R.id.btnEditAvatar);
+        imgAvatar = findViewById(R.id.imgAvatar);
         currentUser = AuthenticationManager.getInstance(this).getCurrentUser();
         id = currentUser.getUser_id();
     }
@@ -76,9 +94,21 @@ public class UserProfileActivity extends AppCompatActivity {
         setupUserInfo();
     }
     private void setupUserInfo() {
-        if (currentUser != null) {
-            tvUsername.setText(currentUser.getUsername());
-            tvEmail.setText(currentUser.getEmail());
+        try {
+            if (currentUser != null) {
+                tvUsername.setText(currentUser.getUsername());
+//                tvEmail.setText(currentUser.getEmail());
+//                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(currentUser.getAvatar_url()));
+//                imgAvatar.setImageBitmap(bitmap);
+                Glide.with(this)
+                        .load(currentUser.getAvatar_url())
+                        .placeholder(R.drawable.ic_default_avatar) // Ảnh tạm thời
+                        .error(R.drawable.ic_default_avatar)       // Ảnh lỗi
+                        .into(imgAvatar);
+                tvEmail.setText("Hello");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -326,5 +356,69 @@ public class UserProfileActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refreshUserInfo(); // Cập nhật thông tin người dùng và giao diện
+    }
+
+    // Thay đổi avatar
+    private void openImageChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Chọn ảnh đại diện"), PICK_IMAGE_REQUEST);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            avatarUri = data.getData();
+            updateAvatar(avatarUri);
+        }
+    }
+    private void updateAvatar(Uri uri) {
+        // Hiển thị ảnh mới
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+            imgAvatar.setImageBitmap(bitmap);
+            // Lưu avatar vào SharedPreferences
+            saveAvatarToPreferences(uri.toString());
+            // Cập nhật avatar vào database
+            updateAvatarInDatabase(uri.toString());
+        } catch (IOException e) {
+            Toast.makeText(this, "Lỗi khi tải ảnh", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+    private void saveAvatarToPreferences(String uriString) {
+        SharedPreferences.Editor editor = getSharedPreferences("auth_prefs", MODE_PRIVATE).edit();
+        editor.putString("avatar_url", uriString);
+        editor.apply();
+
+        // Cập nhật currentUser
+        if (currentUser != null) {
+            currentUser.setAvatar_url(uriString);
+            auth.setCurrentUser(currentUser);
+        }
+    }
+    private void updateAvatarInDatabase(String uriString) {
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(DatabaseContract.Users.COLUMN_AVATAR_URL, uriString);
+
+        int rowsAffected = db.update(
+                DatabaseContract.Users.TABLE_NAME,
+                values,
+                DatabaseContract.Users.COLUMN_USER_ID + " = ?",
+                new String[]{currentUser.getUser_id()}
+        );
+
+        db.close();
+
+        if (rowsAffected > 0) {
+            Toast.makeText(this, "Cập nhật ảnh đại diện thành công", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Cập nhật ảnh đại diện thất bại", Toast.LENGTH_SHORT).show();
+        }
     }
 }

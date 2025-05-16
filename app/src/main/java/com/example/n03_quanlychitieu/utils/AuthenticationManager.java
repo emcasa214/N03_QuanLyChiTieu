@@ -70,7 +70,6 @@ public class AuthenticationManager {
         editor.putString("username", user.getUsername());
         editor.putString("email", user.getEmail());
         editor.putString("avatar_url", user.getAvatar_url());
-
         editor.apply();
     }
 
