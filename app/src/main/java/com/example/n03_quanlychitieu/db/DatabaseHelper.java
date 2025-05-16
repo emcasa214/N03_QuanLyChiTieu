@@ -134,6 +134,67 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         });
     }
 
+
+    public interface EmailCallback {
+        void onSuccess(boolean emailExists);
+        void onError(String errorMessage);
+    }
+
+    public void checkEmail(String email, EmailCallback callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try (SQLiteDatabase db = this.getReadableDatabase()) {
+                boolean emailExists = checkEmailExists(db, email);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onSuccess(emailExists);
+                });
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError(e.getMessage());
+                });
+            }
+        });
+    }
+
+    private boolean checkEmailExists(SQLiteDatabase db, String email) {
+        // Limit 1
+        String query = "SELECT 1 FROM " + DatabaseContract.Users.TABLE_NAME +
+                " WHERE " + DatabaseContract.Users.COLUMN_EMAIL + " = ? LIMIT 1";
+
+        try (Cursor cursor = db.rawQuery(query, new String[]{email})) {
+            return cursor != null && cursor.moveToFirst();
+        }
+    }
+
+    public interface ResetPasswordCallback {
+        void onSuccess(int rowsAffected);
+        void onError(String errorMessage);
+    }
+
+    public void resetPassword(String email, String hashPassword, ResetPasswordCallback callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try (SQLiteDatabase db = this.getWritableDatabase()) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(DatabaseContract.Users.COLUMN_PASSWORD, hashPassword);
+
+                int rowsAffected = db.update(
+                        DatabaseContract.Users.TABLE_NAME,
+                        contentValues,
+                        DatabaseContract.Users.COLUMN_EMAIL + " = ?",
+                        new String[]{email}
+                );
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onSuccess(rowsAffected);
+                });
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError(e.getMessage());
+                });
+            }
+        });
+    }
+
     // Helper method để kiểm tra trường dữ liệu
     private boolean checkFieldExists(SQLiteDatabase db, String column, String value) {
         Cursor cursor = db.query(
@@ -146,6 +207,86 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         boolean exists = (cursor != null && cursor.getCount() > 0);
         return exists;
+    }
+
+    // Sign up with google
+    public void addGoogleUserAsync(String userID, String username, String email, String avatarUrl, UserCallback callback) {
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                SQLiteDatabase db = this.getWritableDatabase();
+                ContentValues values = new ContentValues();
+                values.put(DatabaseContract.Users.COLUMN_USER_ID, userID);
+                values.put(DatabaseContract.Users.COLUMN_USERNAME, username);
+                values.put(DatabaseContract.Users.COLUMN_EMAIL, email);
+                values.put(DatabaseContract.Users.COLUMN_PASSWORD, ""); // Không có password
+                values.put(DatabaseContract.Users.COLUMN_AVATAR_URL, avatarUrl);
+
+                long result = db.insert(DatabaseContract.Users.TABLE_NAME, null, values);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result != -1) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onError("Failed to insert user");
+                    }
+                });
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError(e.getMessage());
+                });
+            }
+        });
+    }
+    public interface GetUserByEmailCallback {
+        void onUserLoaded(Users user);
+        void onUserNotFound();
+        void onError(String errorMessage);
+    }
+
+    @SuppressLint("Range")
+    public void getUserByEmail(String email, GetUserByEmailCallback callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try (SQLiteDatabase db = this.getReadableDatabase()) {
+                Cursor cursor = db.query(
+                        DatabaseContract.Users.TABLE_NAME,
+                        null,
+                        DatabaseContract.Users.COLUMN_EMAIL + " = ?",
+                        new String[]{email},
+                        null, null, null
+                );
+
+                Users user;
+                if (cursor != null && cursor.moveToFirst()) {
+                    user = new Users();
+                    user.setUser_id(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_USER_ID)));
+                    user.setUsername(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_USERNAME)));
+                    user.setEmail(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_EMAIL)));
+                    user.setPassword(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_PASSWORD)));
+                    user.setAvatar_url(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_AVATAR_URL)));
+                    user.setCreated_at(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_CREATED_AT)));
+                } else {
+                    user = null;
+                }
+
+                // Trả kết quả về main thread
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (user != null) {
+                        callback.onUserLoaded(user);
+                    } else {
+                        callback.onUserNotFound();
+                    }
+                });
+
+                if (cursor != null) {
+                    cursor.close();
+                }
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError("Database error: " + e.getMessage());
+                });
+            }
+        });
     }
 
     // get User
@@ -203,6 +344,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         });
     }
+
   
     /***
      * User handle query
@@ -235,6 +377,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return user;
     }
+
     public String getPasswordForUser(String userId) {
         String stored = null;
         SQLiteDatabase db = this.getReadableDatabase();

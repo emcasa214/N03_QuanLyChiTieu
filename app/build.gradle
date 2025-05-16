@@ -43,7 +43,6 @@ android {
 }
 
 dependencies {
-
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
@@ -54,16 +53,22 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.github.yukuku:ambilwarna:2.0.1'
     implementation 'com.sun.mail:android-mail:1.6.7'  // Gửi email
+
     implementation 'com.sun.mail:android-activation:1.6.7'
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
-    implementation 'com.google.android.material:material:1.12.0' // Phiên bản mới nhất
+    implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.airbnb.android:lottie:6.3.0'
     implementation 'com.google.firebase:firebase-auth:22.3.1'
     implementation "at.favre.lib:bcrypt:0.9.0"
-    implementation 'com.google.android.gms:play-services-auth:20.7.0' // Google Sign-In
-    implementation 'com.github.bumptech.glide:glide:4.12.0' // Hiển thị ảnh avatar (nếu cần)
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    implementation 'com.google.android.gms:play-services-auth:20.7.0' // google
+    implementation 'com.google.android.gms:play-services-base:18.2.0'
+    implementation 'com.github.bumptech.glide:glide:4.13.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.13.0'
+    implementation 'com.itextpdf:itext7-core:7.2.3'
+    implementation 'com.itextpdf:kernel:7.2.3'
+    implementation 'com.itextpdf:layout:7.2.3'
 }
