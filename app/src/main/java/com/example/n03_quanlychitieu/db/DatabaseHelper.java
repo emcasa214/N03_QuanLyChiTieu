@@ -13,6 +13,8 @@ import android.util.Log;
 
 import com.example.n03_quanlychitieu.model.Users;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -27,6 +29,7 @@ import com.example.n03_quanlychitieu.model.Users;
 import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
+    private static final String TAG = "DatabaseHelper";
     public static final String DATABASE_NAME = "fin_manager.db";
     private static final int DATABASE_VERSION = 3;
 
@@ -36,8 +39,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onConfigure(SQLiteDatabase db) {
-        super.onConfigure(db);
         db.setForeignKeyConstraintsEnabled(true);
+        Log.d(TAG, "Foreign key constraints enabled");
     }
 
     @Override
@@ -345,11 +348,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         });
     }
 
-  
+
     /***
      * User handle query
      */
-  
+
   // Hàm này cần xem xét lại
     public Users getUserById(String userId) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -475,4 +478,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+}
+    // ---------- Lấy danh sách thu nhập ----------
+    @SuppressLint("Range")
+    public void getAllIncomeByUserId(String userId, GetIncomeListCallback callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<Incomes> incomesList = new ArrayList<>();
+            try (SQLiteDatabase db = this.getReadableDatabase()) {
+                Cursor c = db.query(
+                        DatabaseContract.Incomes.TABLE_NAME,
+                        null,
+                        DatabaseContract.Incomes.COLUMN_USER_ID + " = ?",
+                        new String[]{userId},
+                        null, null,
+                        DatabaseContract.Incomes.COLUMN_CREATE_AT + " DESC"
+                );
+
+                if (c != null && c.moveToFirst()) {
+                    do {
+                        Incomes income = new Incomes();
+                        income.setIncome_id(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_INCOME_ID)));
+                        income.setUser_id(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_USER_ID)));
+                        income.setAmount(Double.parseDouble(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_AMOUNT))));
+                        income.setCategory_id(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_CATEGORY_ID)));
+                        income.setCreate_at(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_CREATE_AT)));
+                        income.setDescription(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_DESCRIPTION)));
+                        incomesList.add(income);
+                    } while (c.moveToNext());
+                    c.close();
+                }
+
+                new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(incomesList));
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Error fetching incomes: " + e.getMessage()));
+            }
+        });
+    }
 }
