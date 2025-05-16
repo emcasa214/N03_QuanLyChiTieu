@@ -204,6 +204,10 @@ public class UserProfileActivity extends AppCompatActivity {
                 Toast.makeText(this, "Mật khẩu hiện tại không đúng.", Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (!isValidPassword(newPw)) {
+                edtNew.setError("Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt");
+                return;
+            }
 
             // gửi mã xác nhận, sau đó lưu mật khẩu
             sendVerificationCode(currentUser.getEmail(), code -> {
@@ -286,6 +290,17 @@ public class UserProfileActivity extends AppCompatActivity {
         AuthenticationManager.getInstance(this).saveLoginState(currentUser);
     }
 
+    private boolean isValidPassword(String password) {
+        // Regex kiểm tra:
+        // - Ít nhất 1 ký tự đặc biệt (!@#$%^&*()_+)
+        // - Ít nhất 1 chữ hoa (A-Z)
+        // - Ít nhất 1 số (0-9)
+        // - Ít nhất 8 ký tự
+        String passwordPattern =
+                "^(?=.*[!@#$%^&*()_+])(?=.*[A-Z])(?=.*\\d).{8,}$";
+
+        return password.matches(passwordPattern);
+    }
     private interface VerificationCallback {
         void onVerified(String code);
     }

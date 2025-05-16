@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -149,58 +151,61 @@ public class EditCategoryActivity extends DialogFragment {
 
     public void setIcon(){
         int[] iconList = {
-                R.drawable.ic_cate_clothers,
-                R.drawable.ic_cate_connect,
-                R.drawable.ic_cate_edu,
-                R.drawable.ic_cate_food,
-                R.drawable.ic_cate_elec,
-                R.drawable.ic_cate_gasoline,
-                R.drawable.ic_cate_gift,
-                R.drawable.ic_cate_home,
-                R.drawable.ic_cate_makeup,
-                R.drawable.ic_cate_market,
-                R.drawable.ic_cate_medicin,
-                R.drawable.ic_cate_money,
-                R.drawable.ic_cate_phone,
-                R.drawable.ic_cate_trade
+                R.drawable.ic_dm_bank,
+                R.drawable.ic_dm_book,
+                R.drawable.ic_dm_charity,
+                R.drawable.ic_dm_clothers,
+                R.drawable.ic_dm_eat,
+                R.drawable.ic_dm_elec,
+                R.drawable.ic_dm_food,
+                R.drawable.ic_dm_friend,
+                R.drawable.ic_dm_gift,
+                R.drawable.ic_dm_go,
+                R.drawable.ic_dm_grocery,
+                R.drawable.ic_dm_home,
+                R.drawable.ic_dm_hospital,
+                R.drawable.ic_dm_make,
+                R.drawable.ic_dm_phone,
+                R.drawable.ic_dm_pig,
+                R.drawable.ic_dm_wallet,
+                R.drawable.ic_dm_water
         };
 
-        btnChonIcon.setOnClickListener(v -> {
-            AlertDialog.Builder b = new AlertDialog.Builder(requireContext());
-            b.setTitle("Chọn Icon");
-            RecyclerView r = new RecyclerView(requireContext());
-            r.setLayoutManager(new GridLayoutManager(requireContext(),4));
+       btnChonIcon.setOnClickListener(v -> {
+           AlertDialog.Builder b = new AlertDialog.Builder(requireContext());
+           b.setTitle("Chọn Icon");
+           RecyclerView r = new RecyclerView(requireContext());
+           r.setLayoutManager(new GridLayoutManager(requireContext(),4));
 
+           RecyclerView.Adapter<IconViewHolder> a = new RecyclerView.Adapter<IconViewHolder>() {
+               @NonNull
+               @Override
+               public IconViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                   View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_icon, parent, false);
+                   return new IconViewHolder(view);
+               }
 
-            RecyclerView.Adapter<IconViewHolder> a = new RecyclerView.Adapter<IconViewHolder>() {
-                @NonNull
-                @Override
-                public IconViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                    View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_icon, parent, false);
-                    return new IconViewHolder(view);
-                }
+               @Override
+               public void onBindViewHolder(@NonNull IconViewHolder holder, int position) {
+                   holder.iconImage.setImageResource(iconList[position]);
+                   holder.itemView.setOnClickListener(v1 -> {
+                       // Cập nhật icon đã chọn
+                       iconPreview.setImageResource(iconList[position]);
+                       iconPreview.setTag(iconList[position]);
+                   });
+               }
 
-                @Override
-                public void onBindViewHolder(@NonNull IconViewHolder holder, int position) {
-                    holder.iconImage.setImageResource(iconList[position]);
-                    holder.itemView.setOnClickListener(v1 -> {
-                        // Cập nhật icon đã chọn
-                        iconPreview.setImageResource(iconList[position]);
-                        iconPreview.setTag(iconList[position]);
-                    });
-                }
-
-                @Override
-                public int getItemCount() {
-                    return iconList.length;
-                }
-            };
-            r.setAdapter(a);
-            b.setView(r);
-            AlertDialog dialog = b.create();
-            dialog.show();
-        });
-    }
+               @Override
+               public int getItemCount() {
+                   return iconList.length;
+               }
+           };
+           r.setAdapter(a);
+           b.setView(r);
+           AlertDialog dialog = b.create();
+           dialog.show();
+       });
+   }
     class IconViewHolder extends RecyclerView.ViewHolder {
         ImageView iconImage;
         public IconViewHolder(@NonNull View itemView) {
@@ -210,7 +215,8 @@ public class EditCategoryActivity extends DialogFragment {
     }
 
 
-    @Override
+
+        @Override
     public void onResume() {
         super.onResume();
         AlertDialog dialog = (AlertDialog) getDialog();

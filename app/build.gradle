@@ -51,6 +51,7 @@ dependencies {
     implementation libs.gridlayout
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
+    implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.github.yukuku:ambilwarna:2.0.1'
     implementation 'com.sun.mail:android-mail:1.6.7'  // Gửi email
     implementation 'com.sun.mail:android-activation:1.6.7'
