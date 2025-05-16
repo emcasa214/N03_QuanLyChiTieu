@@ -13,10 +13,15 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.main.MainActivity;
+import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.example.n03_quanlychitieu.utils.EmailSender;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.io.Console;
 
 public class VerifyOtp extends AppCompatActivity {
 
@@ -25,8 +30,13 @@ public class VerifyOtp extends AppCompatActivity {
     private TextInputEditText otpEditText;
     private String correctOtp;
     private String userEmail;
-    private boolean verification;
+    private String username;
+    private String userID;
+    private String password;
     private EmailSender emailSender;
+    private final DatabaseHelper db = new DatabaseHelper(this);
+    private SignUp signup;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +47,10 @@ public class VerifyOtp extends AppCompatActivity {
         Intent intent = getIntent();
         correctOtp = intent.getStringExtra("otp");
         userEmail = intent.getStringExtra("email");
-        verification = Boolean.parseBoolean(intent.getStringExtra("verification"));
+        username = intent.getStringExtra("username");
+        userID = intent.getStringExtra("userID");
+        password = intent.getStringExtra("password");
+
 
         // Ánh xạ view
         progress_bar_verify = findViewById(R.id.progress_bar_verify);
@@ -46,6 +59,7 @@ public class VerifyOtp extends AppCompatActivity {
         TextView resend_again = findViewById(R.id.resendOtp);
         MaterialButton verifyButton = findViewById(R.id.getOtp);
         emailSender = new EmailSender();
+        signup = new SignUp();
 
         // Xử lý sự kiện
         resend_again.setOnClickListener(v -> resendOtp());
@@ -77,10 +91,10 @@ public class VerifyOtp extends AppCompatActivity {
 
         if (enteredOtp.equals(correctOtp)) {
             // OTP đúng, chuyển sang màn hình đổi mật khẩu
-            if (!verification) {
+            if (username == null) {
                 navigateToForgotPassword();
             } else {
-                navigateToMain();
+                registerNewUser();
             }
         } else {
             hideLoading();
@@ -95,16 +109,58 @@ public class VerifyOtp extends AppCompatActivity {
         Intent intent = new Intent(this, ForgotPassword.class);
         intent.putExtra("email", userEmail);
         startActivity(intent);
-        finish(); // Đóng màn hình verify để người dùng không quay lại bằng nút back
+        finish();
     }
 
-    private void navigateToMain() {
-        hideLoading();
-        Intent intent = new Intent(this, MainActivity.class);
+    private void registerNewUser() {
+        String hashPassword = signup.hashPassword(password);
+        db.addUserAsync(userID, username, userEmail, hashPassword, new DatabaseHelper.UserCallback() {
+            @Override
+            public void onSuccess() {
+                handleAutoLogin(userEmail, password);
+            }
 
-        startActivity(intent);
-        finish(); // Đóng màn hình verify để người dùng không quay lại bằng nút back
+            @Override
+            public void onError(String errorMessage) {
+                progress_bar_verify.setVisibility(View.GONE);
+                Toast.makeText(VerifyOtp.this, "Registration Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
+    public void handleAutoLogin(String usernameOrEmail, String password) {
+        db.getUserAsync(usernameOrEmail, password, new DatabaseHelper.GetUserCallback() {
+            @Override
+            public void onUserLoaded(Users user) {
+                hideLoading();
+                AuthenticationManager.getInstance(VerifyOtp.this).saveLoginState(user);
+
+                Toast.makeText(VerifyOtp.this, "Registration successful!", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(VerifyOtp.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+
+            }
+
+            @Override
+            public void onUserNotFound() {
+                hideLoading();
+                Toast.makeText(VerifyOtp.this,
+                        "Login failed after registration",
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                hideLoading();
+                Toast.makeText(VerifyOtp.this, "Login Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(VerifyOtp.this, BeginActivity.class));
+                finish();
+            }
+        });
+    }
+
+
 
     private void resendOtp() {
         showLoading();

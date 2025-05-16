@@ -35,9 +35,9 @@
                 android:id="@+id/btn_download"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="3dp"
                 android:background="?attr/selectableItemBackground"
-                android:src="@android:drawable/stat_sys_download"
+                android:src="@drawable/id_download"
                 android:contentDescription="Tải báo cáo"/>
 
             <ImageButton

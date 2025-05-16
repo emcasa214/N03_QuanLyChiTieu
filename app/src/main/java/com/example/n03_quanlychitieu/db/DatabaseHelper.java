@@ -134,6 +134,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         });
     }
 
+
     public interface EmailCallback {
         void onSuccess(boolean emailExists);
         void onError(String errorMessage);
@@ -208,6 +209,86 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return exists;
     }
 
+    // Sign up with google
+    public void addGoogleUserAsync(String userID, String username, String email, String avatarUrl, UserCallback callback) {
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                SQLiteDatabase db = this.getWritableDatabase();
+                ContentValues values = new ContentValues();
+                values.put(DatabaseContract.Users.COLUMN_USER_ID, userID);
+                values.put(DatabaseContract.Users.COLUMN_USERNAME, username);
+                values.put(DatabaseContract.Users.COLUMN_EMAIL, email);
+                values.put(DatabaseContract.Users.COLUMN_PASSWORD, ""); // Không có password
+                values.put(DatabaseContract.Users.COLUMN_AVATAR_URL, avatarUrl);
+
+                long result = db.insert(DatabaseContract.Users.TABLE_NAME, null, values);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result != -1) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onError("Failed to insert user");
+                    }
+                });
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError(e.getMessage());
+                });
+            }
+        });
+    }
+    public interface GetUserByEmailCallback {
+        void onUserLoaded(Users user);
+        void onUserNotFound();
+        void onError(String errorMessage);
+    }
+
+    @SuppressLint("Range")
+    public void getUserByEmail(String email, GetUserByEmailCallback callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try (SQLiteDatabase db = this.getReadableDatabase()) {
+                Cursor cursor = db.query(
+                        DatabaseContract.Users.TABLE_NAME,
+                        null,
+                        DatabaseContract.Users.COLUMN_EMAIL + " = ?",
+                        new String[]{email},
+                        null, null, null
+                );
+
+                Users user;
+                if (cursor != null && cursor.moveToFirst()) {
+                    user = new Users();
+                    user.setUser_id(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_USER_ID)));
+                    user.setUsername(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_USERNAME)));
+                    user.setEmail(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_EMAIL)));
+                    user.setPassword(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_PASSWORD)));
+                    user.setAvatar_url(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_AVATAR_URL)));
+                    user.setCreated_at(cursor.getString(cursor.getColumnIndex(DatabaseContract.Users.COLUMN_CREATED_AT)));
+                } else {
+                    user = null;
+                }
+
+                // Trả kết quả về main thread
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (user != null) {
+                        callback.onUserLoaded(user);
+                    } else {
+                        callback.onUserNotFound();
+                    }
+                });
+
+                if (cursor != null) {
+                    cursor.close();
+                }
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError("Database error: " + e.getMessage());
+                });
+            }
+        });
+    }
+
     // get User
 
     public interface GetUserCallback {
@@ -263,6 +344,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         });
     }
+
   
     /***
      * User handle query

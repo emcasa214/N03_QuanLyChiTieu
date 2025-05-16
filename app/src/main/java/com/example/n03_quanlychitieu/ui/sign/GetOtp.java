@@ -113,7 +113,7 @@ public class GetOtp extends AppCompatActivity {
                 emailSender.sendEmail(email, subject, body);
                 runOnUiThread(() -> {
                     hideLoading();
-                    navigateToVerifyOtpScreen(email, generatedOtp, false);
+                    navigateToVerifyOtpScreen(email, generatedOtp);
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
@@ -125,11 +125,10 @@ public class GetOtp extends AppCompatActivity {
     }
 
     // chuyển dữ liệu sang Verify OTP
-    public void navigateToVerifyOtpScreen(String email, String otp, boolean verification) {
+    private void navigateToVerifyOtpScreen(String email, String otp) {
         Intent intent = new Intent(this, VerifyOtp.class);
         intent.putExtra("email", email);
         intent.putExtra("otp", otp);
-        intent.putExtra("verification", verification);
         startActivity(intent);
     }
 }

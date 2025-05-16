@@ -1,12 +1,17 @@
 package com.example.n03_quanlychitieu.ui.sign;
 
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,6 +24,7 @@ import com.example.n03_quanlychitieu.model.Categories;
 import com.example.n03_quanlychitieu.model.Expenses;
 import com.example.n03_quanlychitieu.model.Incomes;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
+import com.example.n03_quanlychitieu.utils.PDFGenerator;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -26,6 +32,7 @@ import com.github.mikephil.charting.data.PieEntry;
 import com.google.android.material.datepicker.MaterialDatePicker;
 
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -42,7 +49,8 @@ public class ReportTransaction extends AppCompatActivity {
     private ReportAdapter reportAdapter;
     private ReportDAO reportDAO;
     private AuthenticationManager authManager;
-
+    private static final int REQUEST_WRITE_STORAGE = 112;
+    private PDFGenerator pdfGenerator;
     private Date currentStartDate, currentEndDate;
     private boolean showIncome = true; // Mặc định hiển thị thu nhập
 
@@ -58,6 +66,10 @@ public class ReportTransaction extends AppCompatActivity {
         authManager = AuthenticationManager.getInstance(this);
         DatabaseHelper dbHelper = new DatabaseHelper(this);
         reportDAO = new ReportDAO(dbHelper.getWritableDatabase());
+        pdfGenerator = new PDFGenerator(this);
+
+        ImageButton btnDownload = findViewById(R.id.btn_download);
+        btnDownload.setOnClickListener(v -> checkPermissionAndGeneratePDF());
 
         // Thiết lập RecyclerView
         setupRecyclerView();
@@ -67,6 +79,59 @@ public class ReportTransaction extends AppCompatActivity {
 
         // Load dữ liệu mặc định (hôm nay)
         loadTodayData();
+    }
+
+    // Kiểm tra quyền trước khi tạo PDF
+    private void checkPermissionAndGeneratePDF() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_WRITE_STORAGE);
+        } else {
+            generatePDF();
+        }
+    }
+
+    // Tạo và lưu file PDF
+    private void generatePDF() {
+        String userId = authManager.getCurrentUser().getUser_id();
+        // Lấy dữ liệu hiện tại
+        double totalIncome = reportDAO.getTotalIncome(userId, currentStartDate, currentEndDate);
+        double totalExpense = reportDAO.getTotalExpense(userId, currentStartDate, currentEndDate);
+        double balance = totalIncome - totalExpense;
+
+        List<Incomes> incomes = reportDAO.getIncomesByTimeRange(userId, currentStartDate, currentEndDate);
+        List<Expenses> expenses = reportDAO.getExpensesByTimeRange(userId, currentStartDate, currentEndDate);
+        Map<Categories, Double> categoryStats = reportDAO.getCategoryStats(userId, currentStartDate, currentEndDate, "expense");
+        Map<String, Double> timeStats = reportDAO.getTimeStats(userId, currentStartDate, currentEndDate, "expense", "day");
+
+        // Tạo tên file với timestamp
+        String fileName = "BaoCao_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date()) + ".pdf";
+
+        // Gọi PDFGenerator để tạo file
+        pdfGenerator.generateFinancialReport(
+                fileName,
+                totalIncome,
+                totalExpense,
+                balance,
+                incomes,
+                expenses,
+                categoryStats,
+                timeStats
+        );
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_WRITE_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                generatePDF();
+            } else {
+                Toast.makeText(this, "Cần cấp quyền để lưu báo cáo", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void initViews() {
