@@ -2,7 +2,6 @@ package com.example.n03_quanlychitieu.db;
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,20 +12,10 @@ import android.util.Log;
 
 import com.example.n03_quanlychitieu.model.Users;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
-
-import com.example.n03_quanlychitieu.model.Budgets;
-import com.example.n03_quanlychitieu.model.Expenses;
-import com.example.n03_quanlychitieu.model.Incomes;
-import com.example.n03_quanlychitieu.model.Notifications;
-import com.example.n03_quanlychitieu.model.Users;
-
-import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseHelper";
@@ -69,6 +58,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public interface UserCallback {
         void onSuccess();
+
         void onError(String errorMessage);
     }
 
@@ -103,8 +93,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public interface UserCheckCallback {
         void onUsernameExists();
+
         void onEmailExists();
+
         void onAvailable(); // Không bị trùng
+
         void onError(String message);
     }
 
@@ -140,6 +133,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public interface EmailCallback {
         void onSuccess(boolean emailExists);
+
         void onError(String errorMessage);
     }
 
@@ -171,6 +165,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public interface ResetPasswordCallback {
         void onSuccess(int rowsAffected);
+
         void onError(String errorMessage);
     }
 
@@ -241,9 +236,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         });
     }
+
     public interface GetUserByEmailCallback {
         void onUserLoaded(Users user);
+
         void onUserNotFound();
+
         void onError(String errorMessage);
     }
 
@@ -296,7 +294,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public interface GetUserCallback {
         void onUserLoaded(Users user);
+
         void onUserNotFound();
+
         void onError(String errorMessage);
     }
 
@@ -353,7 +353,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * User handle query
      */
 
-  // Hàm này cần xem xét lại
+    // Hàm này cần xem xét lại
     public Users getUserById(String userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Users user = null;
@@ -388,7 +388,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             // Query chọn cột password
             String sql = "SELECT password FROM Users WHERE user_id = ?";
-            cursor = db.rawQuery(sql, new String[]{ userId });
+            cursor = db.rawQuery(sql, new String[]{userId});
 
             if (cursor.moveToFirst()) {
                 stored = cursor.getString(cursor.getColumnIndexOrThrow("password"));
@@ -399,17 +399,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return stored;
     }
-    public Boolean updateUser(String id, String name, String gmail){
+
+    public Boolean updateUser(String id, String name, String gmail) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put("username", name);
         contentValues.put("email", gmail);
         long result = db.update("Users", contentValues, "user_id = ?", new String[]{id});
-        if (result == -1){
+        if (result == -1) {
             return false;
         }
         return true;
     }
+
     public void checkUserForUpdate(String userId, String username, String email, UserCheckCallback callback) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try (SQLiteDatabase db = this.getReadableDatabase()) {
@@ -437,6 +439,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         });
     }
+
     private boolean checkFieldExistsForUpdate(SQLiteDatabase db, String column, String value, String userId) {
         Cursor cursor = db.query(
                 DatabaseContract.Users.TABLE_NAME,
@@ -450,6 +453,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null) cursor.close();
         return exists;
     }
+
     public void insertSampleData() {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -477,41 +481,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.close();
     }
+    public interface SimpleCallback {
+        void onSuccess();
+        void onError(String errorMessage);
+    }
 
-}
-    // ---------- Lấy danh sách thu nhập ----------
-    @SuppressLint("Range")
-    public void getAllIncomeByUserId(String userId, GetIncomeListCallback callback) {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            List<Incomes> incomesList = new ArrayList<>();
-            try (SQLiteDatabase db = this.getReadableDatabase()) {
-                Cursor c = db.query(
-                        DatabaseContract.Incomes.TABLE_NAME,
-                        null,
-                        DatabaseContract.Incomes.COLUMN_USER_ID + " = ?",
-                        new String[]{userId},
-                        null, null,
-                        DatabaseContract.Incomes.COLUMN_CREATE_AT + " DESC"
-                );
+    public void addIncomeAsync(String userId, String amount, String categoryId, String date, SimpleCallback callback) {
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                double amountValue = Double.parseDouble(amount); // ép kiểu tại đây
 
-                if (c != null && c.moveToFirst()) {
-                    do {
-                        Incomes income = new Incomes();
-                        income.setIncome_id(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_INCOME_ID)));
-                        income.setUser_id(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_USER_ID)));
-                        income.setAmount(Double.parseDouble(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_AMOUNT))));
-                        income.setCategory_id(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_CATEGORY_ID)));
-                        income.setCreate_at(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_CREATE_AT)));
-                        income.setDescription(c.getString(c.getColumnIndex(DatabaseContract.Incomes.COLUMN_DESCRIPTION)));
-                        incomesList.add(income);
-                    } while (c.moveToNext());
-                    c.close();
-                }
+                SQLiteDatabase db = this.getWritableDatabase();
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("user_id", userId);
+                contentValues.put("amount", amountValue); // đúng kiểu double
+                contentValues.put("category_id", categoryId);
+                contentValues.put("create_at", date);
 
-                new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(incomesList));
+
+                long result = db.insert("incomes", null, contentValues);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result != -1) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onError("Không thể thêm thu nhập");
+                    }
+                });
+            } catch (NumberFormatException e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError("Số tiền không hợp lệ: " + amount);
+                });
             } catch (Exception e) {
-                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Error fetching incomes: " + e.getMessage()));
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError("Lỗi: " + e.getMessage());
+                });
             }
         });
     }
+
+
+
 }

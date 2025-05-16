@@ -155,6 +155,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, ReportTransaction.class));
         } else if(itemId == R.id.nav_budget) {
             startActivity(new Intent(this, SetBudgets.class));
+        } else if(itemId == R.id.nav_view_income){
+            startActivity(new Intent(this, ViewIncomeActivity.class));
         }
     }
 //    set up cho ô tìm kiếm
