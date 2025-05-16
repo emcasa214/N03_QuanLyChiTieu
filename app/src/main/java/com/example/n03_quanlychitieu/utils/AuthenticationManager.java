@@ -1,10 +1,12 @@
 package com.example.n03_quanlychitieu.utils;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.example.n03_quanlychitieu.model.Users;
+import com.example.n03_quanlychitieu.ui.sign.BeginActivity;
 
 public class AuthenticationManager {
     private static AuthenticationManager instance;
@@ -59,6 +61,7 @@ public class AuthenticationManager {
         editor.clear();
         editor.apply();
         currentUser = null;
+
     }
 
     // Cập nhật thông tin người dùng hiện tại

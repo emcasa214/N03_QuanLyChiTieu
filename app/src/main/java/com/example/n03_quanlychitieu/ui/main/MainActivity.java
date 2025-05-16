@@ -72,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
 
     ImageButton btnUser; // qtrang
 
-    TextView logout;
     AuthenticationManager auth;
 
     @Override
@@ -95,16 +94,6 @@ public class MainActivity extends AppCompatActivity {
 //        onBackPressed();
         navigateNotification();
 
-        auth = AuthenticationManager.getInstance(MainActivity.this);
-        logout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (auth.isUserLoggedIn()) {
-                    auth.logout();
-                    startActivity(new Intent(MainActivity.this, BeginActivity.class));
-                }
-            }
-        });
     }
 
     public void khoitao(){
@@ -113,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
         navView = findViewById(R.id.navigation_view);
         rvThuChi = findViewById(R.id.rvThuChi);
         bell = findViewById(R.id.notification_button); // xuandong
-        logout = findViewById(R.id.section_title3);
 
         btnUser = findViewById(R.id.btnUser);
         searchView = findViewById(R.id.search_view);

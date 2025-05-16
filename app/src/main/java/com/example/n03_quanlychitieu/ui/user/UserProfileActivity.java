@@ -1,6 +1,7 @@
 package com.example.n03_quanlychitieu.ui.user;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.InputType;
@@ -21,6 +22,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.model.Users;
+import com.example.n03_quanlychitieu.ui.main.MainActivity;
+import com.example.n03_quanlychitieu.ui.sign.BeginActivity;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.utils.EmailSender;
@@ -31,8 +34,9 @@ public class UserProfileActivity extends AppCompatActivity {
     DatabaseHelper db = new DatabaseHelper(this);
     private TextView tvUsername, tvEmail;
     private ImageButton btnBack, btnEdit;
-    private Button btnChangePw;
+    private Button btnChangePw, btnDangXuat;
     private Users currentUser;
+    AuthenticationManager auth;
 
     //component cua changeinfo
     EditText edChangeGmail, edChangeName;
@@ -60,8 +64,9 @@ public class UserProfileActivity extends AppCompatActivity {
         tvUsername = findViewById(R.id.tvUsername);
         tvEmail = findViewById(R.id.tvEmail);
         btnBack = findViewById(R.id.btnQuayLai);
-//        btnEdit = findViewById(R.id.btnSua);
+        btnEdit = findViewById(R.id.btnSua);
         btnChangePw = findViewById(R.id.btnMK);
+        btnDangXuat = findViewById(R.id.btnDangXuat);
         currentUser = AuthenticationManager.getInstance(this).getCurrentUser();
         id = currentUser.getUser_id();
     }
@@ -81,7 +86,19 @@ public class UserProfileActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> onBackPressed());
 
         btnEdit.setOnClickListener(v -> showChangeInfo());
+
         btnChangePw.setOnClickListener(v -> showChangePasswordDialog());
+
+        auth = AuthenticationManager.getInstance(UserProfileActivity.this);
+        btnDangXuat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (auth.isUserLoggedIn()) {
+                    auth.logout();
+                    startActivity(new Intent(UserProfileActivity.this, BeginActivity.class));
+                }
+            }
+        });
     }
     private void showChangeInfo(){
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_changeinfo, null);
