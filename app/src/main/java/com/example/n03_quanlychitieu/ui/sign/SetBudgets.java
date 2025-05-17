@@ -299,7 +299,6 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     }
 
     private void clearForm() {
-//        etBudgetName.setText("");
         actvCategory.setText("");
         etAmount.setText("");
         etStartDate.setText("");

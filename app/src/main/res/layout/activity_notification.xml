@@ -18,6 +18,7 @@
         android:elevation="4dp">
 
         <TextView
+            android:id="@+id/testOin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Notification"
@@ -64,16 +65,16 @@
         tools:listitem="@layout/item_notification" />
 
     <!-- Nút đánh dấu tất cả đã đọc -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_mark_all_read"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_check_all"
-        android:contentDescription="Đánh dấu tất cả đã đọc"
-        app:backgroundTint="#6200EE"
-        app:tint="@color/white"/>
+<!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+<!--        android:id="@+id/fab_mark_all_read"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="end|bottom"-->
+<!--        android:layout_margin="16dp"-->
+<!--        android:src="@drawable/ic_check_all"-->
+<!--        android:contentDescription="Đánh dấu tất cả đã đọc"-->
+<!--        app:backgroundTint="#6200EE"-->
+<!--        app:tint="@color/white"/>-->
 
     <!-- Empty view khi không có thông báo -->
     <LinearLayout

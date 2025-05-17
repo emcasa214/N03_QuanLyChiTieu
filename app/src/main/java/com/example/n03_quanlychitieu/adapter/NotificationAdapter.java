@@ -68,36 +68,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
     }
 
-    //    public void updateData(List<Notifications> newNotifications) {
-//        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new NotificationDiffCallback(this.notificationList, newNotifications));
-//        this.notificationList.clear();
-//        this.notificationList.addAll(newNotifications);
-//        diffResult.dispatchUpdatesTo(this);
-//    }
     public void updateData(List<Notifications> newNotifications) {
-        // Tạo bản sao để tránh tham chiếu
-        List<Notifications> updatedList = new ArrayList<>(newNotifications);
-
-        // So sánh và cập nhật từng item
-        for (int i = 0; i < updatedList.size(); i++) {
-            if (i < notificationList.size()) {
-                if (!notificationList.get(i).equals(updatedList.get(i))) {
-                    notificationList.set(i, updatedList.get(i));
-                    notifyItemChanged(i); // Chỉ cập nhật item thay đổi
-                }
-            } else {
-                notificationList.add(updatedList.get(i));
-                notifyItemInserted(i); // Thông báo item mới
-            }
-        }
-
-        // Xóa các item thừa (nếu có)
-        if (notificationList.size() > updatedList.size()) {
-            for (int i = notificationList.size() - 1; i >= updatedList.size(); i--) {
-                notificationList.remove(i);
-                notifyItemRemoved(i); // Thông báo item bị xóa
-            }
-        }
+        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new NotificationDiffCallback(this.notificationList, newNotifications));
+        this.notificationList.clear();
+        this.notificationList.addAll(newNotifications);
+        diffResult.dispatchUpdatesTo(this);
     }
 
     @NonNull
@@ -113,7 +88,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         if (notification == null) return;
 
         // Thiết lập icon dựa trên loại thông báo
-        int iconRes = "warning".equals(notification.getNotification_type()) ? R.drawable.ic_warning : R.drawable.ic_empty_notifications;
+        int iconRes = "warn".equals(notification.getNotification_type()) ? R.drawable.ic_warning : R.drawable.ic_empty_notifications;
 
         holder.ivIcon.setImageResource(iconRes);
 

@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.adapter.ThuChiAdapter;
+import com.example.n03_quanlychitieu.dao.NotificationDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
@@ -58,7 +59,8 @@ public class MainActivity extends AppCompatActivity {
     ImageButton btnUser;
     AuthenticationManager auth;
     private String userId;
-    private TextView test;
+    private TextView badgeUnread;
+    private NotificationDAO notificationDAO;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,8 +112,10 @@ public class MainActivity extends AppCompatActivity {
         bell = findViewById(R.id.notification_button);
         btnUser = findViewById(R.id.btnUser);
         searchView = findViewById(R.id.search_view);
-        test = findViewById(R.id.section_title3);
+        badgeUnread = findViewById(R.id.badge_unread);
         setSupportActionBar(toolbar);
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        notificationDAO = new NotificationDAO(dbHelper.getWritableDatabase());
     }
 
     // Chuyển đến màn hình thông tin cá nhân
@@ -318,5 +322,21 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
 
         });
+    }
+
+    private void updateUnreadBadge() {
+        int unreadCount = notificationDAO.getUnreadCount(auth.getCurrentUser().getUser_id());
+        if (unreadCount > 0) {
+            badgeUnread.setText(String.valueOf(unreadCount));
+            badgeUnread.setVisibility(View.VISIBLE);
+        } else {
+            badgeUnread.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateUnreadBadge();
     }
 }

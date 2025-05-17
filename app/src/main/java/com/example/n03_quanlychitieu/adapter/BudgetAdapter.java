@@ -46,19 +46,6 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         this.categoryDAO = categoryDAO;
     }
 
-    //    public void updateData(List<Budgets> newBudgets) {
-//        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new BudgetDiffCallback(this.budgetsList, newBudgets));
-//        this.budgetsList.clear();
-//        this.budgetsList.addAll(newBudgets);
-//        diffResult.dispatchUpdatesTo(this);
-//    } // đang bị lỗi ở hàm update
-
-//    public void updateData(List<Budgets> newBudgets) {
-//        this.budgetsList.clear();
-//        this.budgetsList.addAll(newBudgets);
-//        notifyDataSetChanged(); // Cập nhật toàn bộ RecyclerView
-//    }
-
     public void updateData(List<Budgets> newBudgets) {
         // Tạo bản sao để tránh tham chiếu
         List<Budgets> updatedList = new ArrayList<>(newBudgets);

@@ -33,22 +33,22 @@
 
                     <ImageButton
                         android:id="@+id/notification_button"
-                        android:translationZ="10dp"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
                         android:backgroundTint="@color/black"
                         android:background="@drawable/ic_empty_notifications"/>
 
                     <!-- Badge hiển thị số thông báo chưa đọc -->
                     <TextView
                         android:id="@+id/badge_unread"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:layout_gravity="top|end"
                         android:background="@drawable/badge_circle"
                         android:textColor="@color/white"
                         android:textSize="10sp"
-                        android:visibility="gone"/>
+                        android:gravity="center"
+                        android:visibility="visible"/>
                 </FrameLayout>
 
             </androidx.appcompat.widget.Toolbar>
