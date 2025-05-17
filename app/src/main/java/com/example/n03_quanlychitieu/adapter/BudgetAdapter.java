@@ -11,11 +11,17 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.dao.CategoryDAO;
+import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.model.Budgets;
+import com.example.n03_quanlychitieu.model.Categories;
+import com.example.n03_quanlychitieu.ui.sign.SetBudgets;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,29 +30,48 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
     private List<Budgets> budgetsList;
     private OnBudgetClickListener listener;
     private NumberFormat currencyFormat;
+    private CategoryDAO categoryDAO;
 
     public interface OnBudgetClickListener {
         void onBudgetClick(Budgets budget);
+
         void onBudgetLongClick(Budgets budget);
     }
 
-    public BudgetAdapter(Context context, List<Budgets> budgetsList, OnBudgetClickListener listener) {
+    public BudgetAdapter(Context context, List<Budgets> budgetsList, CategoryDAO categoryDAO, OnBudgetClickListener listener) {
         this.context = context;
         this.budgetsList = budgetsList;
         this.listener = listener;
         this.currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        this.categoryDAO = categoryDAO;
     }
 
+//    public void updateData(List<Budgets> newBudgets) {
+//        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new BudgetDiffCallback(this.budgetsList, newBudgets));
+//        this.budgetsList.clear();
+//        this.budgetsList.addAll(newBudgets);
+//        diffResult.dispatchUpdatesTo(this);
+//    } // đang bị lỗi ở hàm update
     public void updateData(List<Budgets> newBudgets) {
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new BudgetDiffCallback(this.budgetsList, newBudgets));
-        this.budgetsList.clear();
-        this.budgetsList.addAll(newBudgets);
-        diffResult.dispatchUpdatesTo(this);
+        List<Budgets> newList = new ArrayList<>(newBudgets); // Tạo bản sao
+        new Thread(() -> {
+            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new BudgetDiffCallback(this.budgetsList, newList));
+            this.budgetsList.clear();
+            this.budgetsList.addAll(newList);
+            diffResult.dispatchUpdatesTo(this);
+
+//            activity.runOnUiThread(() -> {
+//                this.budgetsList.clear();
+//                this.budgetsList.addAll(newList);
+//                diffResult.dispatchUpdatesTo(this);
+//            });
+        }).start();
     }
 
     private static class BudgetDiffCallback extends DiffUtil.Callback {
         private final List<Budgets> oldList;
         private final List<Budgets> newList;
+
         public BudgetDiffCallback(List<Budgets> oldList, List<Budgets> newList) {
             this.oldList = oldList;
             this.newList = newList;
@@ -83,13 +108,17 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
     @Override
     public void onBindViewHolder(@NonNull BudgetViewHolder holder, int position) {
         Budgets budget = budgetsList.get(position);
+
+        Categories category = categoryDAO.getCategoryById(budget.getCategory_id());
+
         if (budget == null) return;
 
         // Set category icon
-        holder.ivCategoryIcon.setImageResource(getCategoryIcon(budget.getCategory_id()));
+        int iconResId = context.getResources().getIdentifier(category.getIcon(), "drawable", context.getPackageName());
+        holder.ivCategoryIcon.setImageResource(getCategoryIcon(iconResId));
 
         // Set category name
-        holder.tvCategoryName.setText(getCategoryName(budget.getCategory_id()));
+        holder.tvCategoryName.setText(getCategoryName(category.getName()));
 
         // Format amount
         holder.tvAmount.setText(currencyFormat.format(budget.getAmount()));
@@ -102,7 +131,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         holder.tvDescription.setText(budget.getDescription() != null ? budget.getDescription() : "");
 
         // Calculate progress
-        double spentAmount = 0; // You need to get this from your DAO
+        double spentAmount = 0; // Lấy từ DAO
         double progress = Math.min((spentAmount / budget.getAmount()) * 100, 100);
 
         holder.progressBar.setProgress((int) progress);
@@ -148,19 +177,19 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         }
     }
 
-    // Helper methods // Default Value
-    private int getCategoryIcon(String categoryId) {
+    // Helper methods
+    private int getCategoryIcon(int categoryIcon) {
         // Return appropriate icon based on categoryId
-        return R.drawable.ic_cate_food; // Default icon
+        return categoryIcon;
     }
 
-    private String getCategoryName(String categoryId) {
+    private String getCategoryName(String categoryName) {
         // Return category name based on categoryId
-        return "Ăn uống"; // Default name
+        return categoryName;
     }
 
     private String formatDate(String dateString) {
         // Format date from yyyy-MM-dd to dd/MM/yyyy
-        return dateString; // Simple return for now, implement proper formatting
+        return dateString;
     }
 }

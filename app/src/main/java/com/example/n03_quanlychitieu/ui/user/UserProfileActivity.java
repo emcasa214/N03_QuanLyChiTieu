@@ -97,15 +97,12 @@ public class UserProfileActivity extends AppCompatActivity {
         try {
             if (currentUser != null) {
                 tvUsername.setText(currentUser.getUsername());
-//                tvEmail.setText(currentUser.getEmail());
-//                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), Uri.parse(currentUser.getAvatar_url()));
-//                imgAvatar.setImageBitmap(bitmap);
+                tvEmail.setText(currentUser.getEmail());
                 Glide.with(this)
                         .load(currentUser.getAvatar_url())
                         .placeholder(R.drawable.ic_default_avatar) // Ảnh tạm thời
                         .error(R.drawable.ic_default_avatar)       // Ảnh lỗi
                         .into(imgAvatar);
-                tvEmail.setText("Hello");
             }
         } catch (Exception e) {
             e.printStackTrace();

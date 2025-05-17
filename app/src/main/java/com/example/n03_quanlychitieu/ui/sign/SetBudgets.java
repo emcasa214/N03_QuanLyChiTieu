@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -50,9 +51,10 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     private BudgetAdapter budgetAdapter;
     private List<Budgets> budgetsList = new ArrayList<>();
     private List<Categories> categories = new ArrayList<>();
-
     private final Calendar calendar = Calendar.getInstance();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+    private TextView gioihan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +97,7 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     }
 
     private void initViews() {
-        etBudgetName = findViewById(R.id.budget_name);
+//        etBudgetName = findViewById(R.id.budget_name);
         actvCategory = findViewById(R.id.actv_category);
         etAmount = findViewById(R.id.et_amount);
         etStartDate = findViewById(R.id.et_start_date);
@@ -105,6 +107,7 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
         rvBudgets = findViewById(R.id.rv_budgets);
         emptyView = findViewById(R.id.empty_view);
         bottomSheet = findViewById(R.id.bottom_sheet);
+        gioihan = findViewById(R.id.gioihan);
     }
 
     private void setupBottomSheet() {
@@ -198,15 +201,16 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     }
 
     private void setupRecyclerView() {
-        budgetAdapter = new BudgetAdapter(this, budgetsList, this);
+        budgetAdapter = new BudgetAdapter(this, budgetsList, categoryDAO, this);
         rvBudgets.setLayoutManager(new LinearLayoutManager(this));
         rvBudgets.setAdapter(budgetAdapter);
     }
-
     private void loadBudgets() {
         budgetsList.clear();
         budgetsList.addAll(budgetDAO.getBudgetsByUser(currentUserId));
-        budgetAdapter.updateData(budgetsList);
+
+
+        budgetAdapter.updateData(budgetsList); // lỗi ở đây
 
         // Show empty view if no budgets
         if (budgetsList.isEmpty()) {
@@ -220,17 +224,17 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
 
     private void saveBudget() {
         // Validate inputs
-        String name = etBudgetName.getText().toString().trim();
+//        String name = etBudgetName.getText().toString().trim();
         String categoryName = actvCategory.getText().toString().trim();
         String amountStr = etAmount.getText().toString().trim();
         String startDate = etStartDate.getText().toString().trim();
         String endDate = etEndDate.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
 
-        if (name.isEmpty()) {
-            etBudgetName.setError("Vui lòng nhập tên giới hạn");
-            return;
-        }
+//        if (name.isEmpty()) {
+//            etBudgetName.setError("Vui lòng nhập tên giới hạn");
+//            return;
+//        }
 
         if (categoryName.isEmpty()) {
             actvCategory.setError("Vui lòng chọn danh mục");
@@ -303,7 +307,7 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     }
 
     private void clearForm() {
-        etBudgetName.setText("");
+//        etBudgetName.setText("");
         actvCategory.setText("");
         etAmount.setText("");
         etStartDate.setText("");
