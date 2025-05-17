@@ -29,6 +29,7 @@ import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.adapter.ThuChiAdapter;
 import com.example.n03_quanlychitieu.dao.NotificationDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
 import com.example.n03_quanlychitieu.ui.expense.ViewExpenseActivity;
@@ -44,6 +45,7 @@ import com.google.android.material.navigation.NavigationView;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     private String userId;
     private TextView badgeUnread;
     private NotificationDAO notificationDAO;
-
+    private Notifications tb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         // Lấy thông tin người dùng hiện tại
         Users currentUser = auth.getCurrentUser();
         userId = currentUser != null ? currentUser.getUser_id() : null;
+
         if (userId == null) {
             Toast.makeText(this, "User ID is missing. Vui lòng đăng nhập lại.", Toast.LENGTH_SHORT).show();
             auth.logout();
@@ -92,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
+
 
         // Khởi tạo giao diện và các thành phần khác
         khoitao();
@@ -102,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
         setClickUser();
         setupSearch();
         navigateNotification();
+
     }
 
     public void khoitao() {
@@ -114,8 +119,11 @@ public class MainActivity extends AppCompatActivity {
         searchView = findViewById(R.id.search_view);
         badgeUnread = findViewById(R.id.badge_unread);
         setSupportActionBar(toolbar);
+        tb = new Notifications(UUID.randomUUID().toString(), "Bạn đã đăng nhập vào ứng dụng!", false, null, "info", auth.getCurrentUser().getUser_id());
+
         DatabaseHelper dbHelper = new DatabaseHelper(this);
         notificationDAO = new NotificationDAO(dbHelper.getWritableDatabase());
+        notificationDAO.insert(tb);
     }
 
     // Chuyển đến màn hình thông tin cá nhân
