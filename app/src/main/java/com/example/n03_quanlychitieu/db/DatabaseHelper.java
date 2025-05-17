@@ -53,12 +53,131 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    // Interface callback chung
+    public interface SimpleCallback {
+        void onSuccess();
+        void onError(String errorMessage);
+    }
+
+    // Hàm kiểm tra budget_id có tồn tại trong bảng Budgets không
+    private boolean checkBudgetExists(SQLiteDatabase db, String budgetId) {
+        String query = "SELECT 1 FROM Budgets WHERE budget_id = ? LIMIT 1";
+        try (Cursor cursor = db.rawQuery(query, new String[]{budgetId})) {
+            return cursor != null && cursor.moveToFirst();
+        }
+    }
+
+    // Hàm thêm chi tiêu với kiểm tra budget_id
+    public void addExpenseAsync(String userId, String amount, String categoryId, String description, String date, SimpleCallback callback) {
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                double amountValue = Double.parseDouble(amount);
+
+                SQLiteDatabase db = this.getWritableDatabase();
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("user_id", userId);
+                contentValues.put("amount", amountValue);
+                contentValues.put("category_id", categoryId);
+                contentValues.put("description", description);
+                contentValues.put("create_at", date);
+
+                // Sử dụng budget_id mặc định nếu không có
+                String budgetId = "bud1"; // Giá trị mặc định từ dữ liệu mẫu
+                if (!checkBudgetExists(db, budgetId)) {
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        callback.onError("Ngân sách mặc định không tồn tại: " + budgetId);
+                    });
+                    return;
+                }
+                contentValues.put("budget_id", budgetId);
+
+                long result = db.insert("expenses", null, contentValues);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result != -1) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onError("Không thể thêm chi tiêu");
+                    }
+                });
+            } catch (NumberFormatException e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError("Số tiền không hợp lệ: " + amount);
+                });
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError("Lỗi: " + e.getMessage());
+                });
+            }
+        });
+    }
+
+    // Hàm thêm thu nhập
+    public void addIncomeAsync(String userId, String amount, String categoryId, String date, SimpleCallback callback) {
+        Executor executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                double amountValue = Double.parseDouble(amount);
+
+                SQLiteDatabase db = this.getWritableDatabase();
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("user_id", userId);
+                contentValues.put("amount", amountValue);
+                contentValues.put("category_id", categoryId);
+                contentValues.put("create_at", date);
+
+                long result = db.insert("incomes", null, contentValues);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result != -1) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onError("Không thể thêm thu nhập");
+                    }
+                });
+            } catch (NumberFormatException e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError("Số tiền không hợp lệ: " + amount);
+                });
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    callback.onError("Lỗi: " + e.getMessage());
+                });
+            }
+        });
+    }
+
+    // Chèn dữ liệu mẫu
+    public void insertSampleData() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Chèn Categories
+        db.execSQL("INSERT OR IGNORE INTO Categories (category_id, name, icon, color, type, user_id) VALUES " +
+                "('cat1', 'Ăn uống', 'ic_food', '#FF5722', 'expense', '6cc204cb-95b7-4e7d-9b55-5e088834f033')," +
+                "('cat2', 'Lương', 'ic_salary', '#4CAF50', 'income', '6cc204cb-95b7-4e7d-9b55-5e088834f033');");
+
+        // Chèn Budgets
+        db.execSQL("INSERT OR IGNORE INTO Budgets (budget_id, amount, start_date, end_date, description, user_id, category_id) VALUES " +
+                "('bud1', 2000000, '2025-05-01', '2025-05-31', 'Shopping', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1');");
+
+        // Chèn Expenses
+        db.execSQL("INSERT OR IGNORE INTO Expenses (expense_id, amount, description, create_at, user_id, category_id, budget_id) VALUES " +
+                "('exp1', 50000, 'Ăn sáng', '2025-05-02', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1', 'bud1')," +
+                "('exp2', 120000, 'Ăn trưa', '2025-05-05', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1', 'bud1');");
+
+        // Chèn Incomes
+        db.execSQL("INSERT OR IGNORE INTO Incomes (income_id, amount, description, create_at, user_id, category_id) VALUES " +
+                "('inc1', 10000000, 'Lương tháng 5', '2025-05-01', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat2');");
+
+        db.close();
+    }
+
     /***
      * User handle query
      */
     public interface UserCallback {
         void onSuccess();
-
         void onError(String errorMessage);
     }
 
@@ -75,7 +194,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 long result = db.insert(DatabaseContract.Users.TABLE_NAME, null, contentValues);
 
-                // Chuyển kết quả về main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (result != -1) {
                         callback.onSuccess();
@@ -93,23 +211,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public interface UserCheckCallback {
         void onUsernameExists();
-
         void onEmailExists();
-
-        void onAvailable(); // Không bị trùng
-
+        void onAvailable();
         void onError(String message);
     }
 
-    // check user
     public void checkUser(String username, String email, UserCheckCallback callback) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try (SQLiteDatabase db = this.getReadableDatabase()) {
-                // Kiểm tra trùng username
                 boolean usernameExists = checkFieldExists(db,
                         DatabaseContract.Users.COLUMN_USERNAME, username);
 
-                // Kiểm tra trùng email
                 boolean emailExists = checkFieldExists(db,
                         DatabaseContract.Users.COLUMN_EMAIL, email);
 
@@ -130,10 +242,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         });
     }
 
-
     public interface EmailCallback {
         void onSuccess(boolean emailExists);
-
         void onError(String errorMessage);
     }
 
@@ -154,7 +264,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private boolean checkEmailExists(SQLiteDatabase db, String email) {
-        // Limit 1
         String query = "SELECT 1 FROM " + DatabaseContract.Users.TABLE_NAME +
                 " WHERE " + DatabaseContract.Users.COLUMN_EMAIL + " = ? LIMIT 1";
 
@@ -165,7 +274,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public interface ResetPasswordCallback {
         void onSuccess(int rowsAffected);
-
         void onError(String errorMessage);
     }
 
@@ -193,7 +301,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         });
     }
 
-    // Helper method để kiểm tra trường dữ liệu
     private boolean checkFieldExists(SQLiteDatabase db, String column, String value) {
         Cursor cursor = db.query(
                 DatabaseContract.Users.TABLE_NAME,
@@ -204,10 +311,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         );
 
         boolean exists = (cursor != null && cursor.getCount() > 0);
+        if (cursor != null) cursor.close();
         return exists;
     }
 
-    // Sign up with google
     public void addGoogleUserAsync(String userID, String username, String email, String avatarUrl, UserCallback callback) {
         Executor executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
@@ -217,7 +324,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 values.put(DatabaseContract.Users.COLUMN_USER_ID, userID);
                 values.put(DatabaseContract.Users.COLUMN_USERNAME, username);
                 values.put(DatabaseContract.Users.COLUMN_EMAIL, email);
-                values.put(DatabaseContract.Users.COLUMN_PASSWORD, ""); // Không có password
+                values.put(DatabaseContract.Users.COLUMN_PASSWORD, "");
                 values.put(DatabaseContract.Users.COLUMN_AVATAR_URL, avatarUrl);
 
                 long result = db.insert(DatabaseContract.Users.TABLE_NAME, null, values);
@@ -239,9 +346,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public interface GetUserByEmailCallback {
         void onUserLoaded(Users user);
-
         void onUserNotFound();
-
         void onError(String errorMessage);
     }
 
@@ -270,7 +375,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     user = null;
                 }
 
-                // Trả kết quả về main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (user != null) {
                         callback.onUserLoaded(user);
@@ -290,13 +394,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         });
     }
 
-    // get User
-
     public interface GetUserCallback {
         void onUserLoaded(Users user);
-
         void onUserNotFound();
-
         void onError(String errorMessage);
     }
 
@@ -330,7 +430,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     passwordMatch = false;
                 }
 
-                // Trả kết quả về main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (user != null && passwordMatch) {
                         callback.onUserLoaded(user);
@@ -353,15 +452,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * User handle query
      */
 
+
     public Users getUserById(String userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Users user = null;
 
         Cursor cursor = db.query(
-                "Users", // Tên bảng
-                null, // Lấy tất cả các cột
-                "user_id = ?", // Điều kiện WHERE
-                new String[]{userId}, // Giá trị điều kiện
+                "Users",
+                null,
+                "user_id = ?",
+                new String[]{userId},
                 null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
@@ -385,7 +485,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
         try {
-            // Query chọn cột password
             String sql = "SELECT password FROM Users WHERE user_id = ?";
             cursor = db.rawQuery(sql, new String[]{userId});
 
@@ -414,11 +513,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void checkUserForUpdate(String userId, String username, String email, UserCheckCallback callback) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try (SQLiteDatabase db = this.getReadableDatabase()) {
-                // Kiểm tra trùng username (ngoại trừ user hiện tại)
                 boolean usernameExists = checkFieldExistsForUpdate(db,
                         DatabaseContract.Users.COLUMN_USERNAME, username, userId);
 
-                // Kiểm tra trùng email (ngoại trừ user hiện tại)
                 boolean emailExists = checkFieldExistsForUpdate(db,
                         DatabaseContract.Users.COLUMN_EMAIL, email, userId);
 
@@ -443,7 +540,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 DatabaseContract.Users.TABLE_NAME,
                 new String[]{column},
-                column + " = ? AND user_id != ?", // Loại trừ user hiện tại
+                column + " = ? AND user_id != ?",
                 new String[]{value, userId},
                 null, null, null
         );
@@ -452,74 +549,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null) cursor.close();
         return exists;
     }
-
-    public void insertSampleData() {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        // Chèn Categories
-        db.execSQL("INSERT OR IGNORE INTO Categories (category_id, name, icon, color, type, user_id) VALUES " +
-                "('cat1', 'Ăn uống', 'ic_food', '#FF5722', 'expense', '6cc204cb-95b7-4e7d-9b55-5e088834f033')," +
-                "('cat2', 'Lương', 'ic_salary', '#4CAF50', 'income', '6cc204cb-95b7-4e7d-9b55-5e088834f033');");
-
-        // Chèn Budgets
-        db.execSQL("INSERT OR IGNORE INTO Budgets (budget_id, amount, start_date, end_date, description, user_id, category_id) VALUES " +
-                "('bud1', 2000000, '2025-05-01', '2025-05-31', 'Shopping' ,'6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1');");
-
-        // Chèn Expenses
-        db.execSQL("INSERT OR IGNORE INTO Expenses (expense_id, amount, description, create_at, user_id, category_id, budget_id) VALUES " +
-                "('exp1', 50000, 'Ăn sáng', '2025-05-02', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1', 'bud1')," +
-                "('exp2', 120000, 'Ăn trưa', '2025-05-05', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat1', 'bud1');");
-
-        // Chèn Incomes
-        db.execSQL("INSERT OR IGNORE INTO Incomes (income_id, amount, description, create_at, user_id, category_id) VALUES " +
-                "('inc1', 10000000, 'Lương tháng 5', '2025-05-01', '6cc204cb-95b7-4e7d-9b55-5e088834f033', 'cat2');");
-
-        // Chèn Notifications
-//        db.execSQL("INSERT OR IGNORE INTO Notifications (notification_id, content, is_read, created_at, notification_type, user_id) VALUES " +
-//                "('noti1', 'Bạn đã chi tiêu vượt ngân sách!', 0, '2025-05-15 08:00:00', 'warn', '6cc204cb-95b7-4e7d-9b55-5e088834f033');");
-
-        db.close();
-    }
-    public interface SimpleCallback {
-        void onSuccess();
-        void onError(String errorMessage);
-    }
-
-    public void addIncomeAsync(String userId, String amount, String categoryId, String date, SimpleCallback callback) {
-        Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-            try {
-                double amountValue = Double.parseDouble(amount); // ép kiểu tại đây
-
-                SQLiteDatabase db = this.getWritableDatabase();
-                ContentValues contentValues = new ContentValues();
-                contentValues.put("user_id", userId);
-                contentValues.put("amount", amountValue); // đúng kiểu double
-                contentValues.put("category_id", categoryId);
-                contentValues.put("create_at", date);
-
-
-                long result = db.insert("incomes", null, contentValues);
-
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if (result != -1) {
-                        callback.onSuccess();
-                    } else {
-                        callback.onError("Không thể thêm thu nhập");
-                    }
-                });
-            } catch (NumberFormatException e) {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    callback.onError("Số tiền không hợp lệ: " + amount);
-                });
-            } catch (Exception e) {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    callback.onError("Lỗi: " + e.getMessage());
-                });
-            }
-        });
-    }
-
-
-
 }

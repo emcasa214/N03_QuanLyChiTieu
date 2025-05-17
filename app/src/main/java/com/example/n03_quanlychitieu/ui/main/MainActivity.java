@@ -38,6 +38,7 @@ import com.example.n03_quanlychitieu.model.Incomes;
 import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
+import com.example.n03_quanlychitieu.ui.expense.ViewExpenseActivity;
 import com.example.n03_quanlychitieu.ui.sign.BeginActivity;
 import com.example.n03_quanlychitieu.ui.sign.LogIn;
 import com.example.n03_quanlychitieu.ui.sign.ReportTransaction;
@@ -156,7 +157,12 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, SetBudgets.class));
         } else if(itemId == R.id.nav_view_income){
             startActivity(new Intent(this, ViewIncomeActivity.class));
+        } else if(itemId == R.id.nav_view_expense) {
+            startActivity(new Intent(this, ViewExpenseActivity.class));
         }
+
+
+
     }
 //    set up cho ô tìm kiếm
     public void setupSearch(){
