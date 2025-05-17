@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.model.Budgets;
 import com.example.n03_quanlychitieu.model.Notifications;
 
 import java.text.SimpleDateFormat;
@@ -67,11 +68,36 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         }
     }
 
+    //    public void updateData(List<Notifications> newNotifications) {
+//        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new NotificationDiffCallback(this.notificationList, newNotifications));
+//        this.notificationList.clear();
+//        this.notificationList.addAll(newNotifications);
+//        diffResult.dispatchUpdatesTo(this);
+//    }
     public void updateData(List<Notifications> newNotifications) {
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new NotificationDiffCallback(this.notificationList, newNotifications));
-        this.notificationList.clear();
-        this.notificationList.addAll(newNotifications);
-        diffResult.dispatchUpdatesTo(this);
+        // Tạo bản sao để tránh tham chiếu
+        List<Notifications> updatedList = new ArrayList<>(newNotifications);
+
+        // So sánh và cập nhật từng item
+        for (int i = 0; i < updatedList.size(); i++) {
+            if (i < notificationList.size()) {
+                if (!notificationList.get(i).equals(updatedList.get(i))) {
+                    notificationList.set(i, updatedList.get(i));
+                    notifyItemChanged(i); // Chỉ cập nhật item thay đổi
+                }
+            } else {
+                notificationList.add(updatedList.get(i));
+                notifyItemInserted(i); // Thông báo item mới
+            }
+        }
+
+        // Xóa các item thừa (nếu có)
+        if (notificationList.size() > updatedList.size()) {
+            for (int i = notificationList.size() - 1; i >= updatedList.size(); i--) {
+                notificationList.remove(i);
+                notifyItemRemoved(i); // Thông báo item bị xóa
+            }
+        }
     }
 
     @NonNull
@@ -92,7 +118,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         holder.ivIcon.setImageResource(iconRes);
 
         holder.tvTitle.setText(notification.getContent());
-        holder.tvMessage.setText(notification.getContent());
         holder.tvTime.setText(formatTime(notification.getCreate_at()));
 
         // Hiển thị indicator chưa đọc với animation
@@ -123,7 +148,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
             if (isToday(date)) {
                 return new SimpleDateFormat("HH:mm").format(date);
-            }else {
+            } else {
                 return new SimpleDateFormat("dd/MM").format(date);
             }
         } catch (Exception e) {
@@ -146,15 +171,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
         ImageView ivIcon;
         TextView tvTitle;
-        TextView tvMessage;
         TextView tvTime;
         View viewUnreadIndicator;
 
         public NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
             ivIcon = itemView.findViewById(R.id.iv_notification_icon);
-            tvTitle = itemView.findViewById(R.id.tv_notification_title);
-            tvMessage = itemView.findViewById(R.id.tv_notification_message);
+            tvTitle = itemView.findViewById(R.id.tv_notification_content);
             tvTime = itemView.findViewById(R.id.tv_notification_time);
             viewUnreadIndicator = itemView.findViewById(R.id.view_unread_indicator);
         }

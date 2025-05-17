@@ -54,7 +54,6 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     private final Calendar calendar = Calendar.getInstance();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-    private TextView gioihan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +96,6 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     }
 
     private void initViews() {
-//        etBudgetName = findViewById(R.id.budget_name);
         actvCategory = findViewById(R.id.actv_category);
         etAmount = findViewById(R.id.et_amount);
         etStartDate = findViewById(R.id.et_start_date);
@@ -107,7 +105,6 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
         rvBudgets = findViewById(R.id.rv_budgets);
         emptyView = findViewById(R.id.empty_view);
         bottomSheet = findViewById(R.id.bottom_sheet);
-        gioihan = findViewById(R.id.gioihan);
     }
 
     private void setupBottomSheet() {
@@ -205,15 +202,12 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
         rvBudgets.setLayoutManager(new LinearLayoutManager(this));
         rvBudgets.setAdapter(budgetAdapter);
     }
+
     private void loadBudgets() {
-        budgetsList.clear();
-        budgetsList.addAll(budgetDAO.getBudgetsByUser(currentUserId));
+        List<Budgets> newBudgets = budgetDAO.getBudgetsByUser(currentUserId);
+        budgetAdapter.updateData(newBudgets);
 
-
-        budgetAdapter.updateData(budgetsList); // lỗi ở đây
-
-        // Show empty view if no budgets
-        if (budgetsList.isEmpty()) {
+        if (newBudgets.isEmpty()) {
             emptyView.setVisibility(View.VISIBLE);
             rvBudgets.setVisibility(View.GONE);
         } else {
@@ -224,17 +218,12 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
 
     private void saveBudget() {
         // Validate inputs
-//        String name = etBudgetName.getText().toString().trim();
         String categoryName = actvCategory.getText().toString().trim();
         String amountStr = etAmount.getText().toString().trim();
         String startDate = etStartDate.getText().toString().trim();
         String endDate = etEndDate.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
 
-//        if (name.isEmpty()) {
-//            etBudgetName.setError("Vui lòng nhập tên giới hạn");
-//            return;
-//        }
 
         if (categoryName.isEmpty()) {
             actvCategory.setError("Vui lòng chọn danh mục");
@@ -293,10 +282,13 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
         if (result != -1) {
             Toast.makeText(this, "Đã lưu giới hạn chi tiêu", Toast.LENGTH_SHORT).show();
             clearForm();
-            loadBudgets();
+//            loadBudgets();
 
             // Expand the bottom sheet to show the new budget
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            budgetsList.add(0, newBudget);
+            budgetAdapter.notifyItemInserted(0);
+            rvBudgets.smoothScrollToPosition(0);
         } else {
             Toast.makeText(this, "Lỗi khi lưu giới hạn", Toast.LENGTH_SHORT).show();
         }

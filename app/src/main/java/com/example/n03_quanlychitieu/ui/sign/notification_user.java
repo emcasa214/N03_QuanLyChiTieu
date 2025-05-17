@@ -14,6 +14,7 @@ import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.adapter.NotificationAdapter;
 import com.example.n03_quanlychitieu.dao.NotificationDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Budgets;
 import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -28,8 +29,6 @@ public class notification_user extends AppCompatActivity {
     private List<Notifications> notificationsList = new ArrayList<>();
     private TabLayout tabLayout;
     private FloatingActionButton fabMarkAllRead;
-    private TextView badgeUnread;
-    private ImageButton btnSearch;
     private View emtyView;
     private NotificationDAO notificationDAO;
     private String currentUserId;
@@ -45,8 +44,6 @@ public class notification_user extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_notifications);
         tabLayout = findViewById(R.id.tab_layout);
         fabMarkAllRead = findViewById(R.id.fab_mark_all_read);
-        badgeUnread = findViewById(R.id.badge_unread);
-        btnSearch = findViewById(R.id.btn_search);
         emtyView = findViewById(R.id.empty_view);
 
         authManager = AuthenticationManager.getInstance(notification_user.this);
@@ -116,11 +113,7 @@ public class notification_user extends AppCompatActivity {
         fabMarkAllRead.setOnClickListener(v -> {
             notificationDAO.markAllRead(currentUserId);
             loadNotifications(false);
-            updateUnreadBadge();
-        });
-
-        btnSearch.setOnClickListener(v -> {
-
+//            updateUnreadBadge();
         });
     }
 
@@ -132,7 +125,7 @@ public class notification_user extends AppCompatActivity {
             notifications = notificationDAO.getNotificationsByUser(currentUserId);
         }
         updateNotificationList(notifications);
-        updateUnreadBadge();
+//        updateUnreadBadge();
     }
 
     private void loadUnreadNotifications() {
@@ -154,7 +147,7 @@ public class notification_user extends AppCompatActivity {
     private void updateNotificationList(List<Notifications> notifications) {
         notificationsList.clear();
         notificationsList.addAll(notifications);
-        adapter.updateData(notifications);
+//        adapter.updateData(notifications);
 
         // Hiển thị empty view nếu không có thông báo
         if (notificationsList.isEmpty()) {
@@ -166,20 +159,21 @@ public class notification_user extends AppCompatActivity {
         }
     }
 
-    private void updateUnreadBadge() {
-        int unreadCount = notificationDAO.getUnreadCount(currentUserId);
-        if (unreadCount > 0) {
-            badgeUnread.setText(String.valueOf(unreadCount));
-            badgeUnread.setVisibility(View.VISIBLE);
-        } else {
-            badgeUnread.setVisibility(View.GONE);
-        }
-    }
+
+//    private void updateUnreadBadge() {
+//        int unreadCount = notificationDAO.getUnreadCount(currentUserId);
+//        if (unreadCount > 0) {
+//            badgeUnread.setText(String.valueOf(unreadCount));
+//            badgeUnread.setVisibility(View.VISIBLE);
+//        } else {
+//            badgeUnread.setVisibility(View.GONE);
+//        }
+//    }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadNotifications(false);
-        updateUnreadBadge();
+//        updateUnreadBadge();
     }
 }

@@ -67,95 +67,95 @@ public class AddExpenseActivity extends AppCompatActivity {
             finish();
         });
 
-        btnSave.setOnClickListener(v -> {
-            Log.d(TAG, "Save button clicked");
-
-            tilDate.setError(null);
-            tilAmount.setError(null);
-            tilCategory.setError(null);
-            tilDescription.setError(null);
-
-            String date = etDate.getText().toString().trim();
-            String amount = etAmount.getText().toString().trim();
-            String category = etCategory.getText().toString().trim();
-            String description = etDescription.getText().toString().trim();
-            Log.d(TAG, "Input values: date=" + date + ", amount=" + amount + ", category=" + category + ", description=" + description);
-
-            if (date.isEmpty()) {
-                Log.w(TAG, "Validation failed: Date is empty");
-                tilDate.setError("Vui lòng chọn ngày");
-                return;
-            }
-            if (amount.isEmpty()) {
-                Log.w(TAG, "Validation failed: Amount is empty");
-                tilAmount.setError("Vui lòng nhập số tiền");
-                return;
-            }
-            if (category.isEmpty()) {
-                Log.w(TAG, "Validation failed: Category is empty");
-                tilCategory.setError("Vui lòng nhập danh mục");
-                return;
-            }
-            if (description.isEmpty()) {
-                Log.w(TAG, "Validation failed: Description is empty");
-                tilDescription.setError("Vui lòng nhập mô tả");
-                return;
-            }
-
-            try {
-                double amountValue = Double.parseDouble(amount);
-                if (amountValue <= 0) {
-                    tilAmount.setError("Số tiền phải lớn hơn 0");
-                    return;
-                }
-
-                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                inputFormat.setLenient(false);
-                java.util.Date parsedDate = inputFormat.parse(date);
-                String formattedDate = outputFormat.format(parsedDate);
-
-                String userId = "user1"; // Thay bằng userId thực tế từ session
-
-                btnBack.setEnabled(false);
-                btnSave.setEnabled(false);
-
-                databaseHelper.addExpenseAsync(
-                        userId,
-                        String.valueOf(amountValue),
-                        category,  // Đây là category_id, cần đảm bảo category hợp lệ
-                        description,
-                        formattedDate,
-                        new DatabaseHelper.SimpleCallback() {
-                            @Override
-                            public void onSuccess() {
-                                Intent resultIntent = new Intent();
-                                resultIntent.putExtra("date", date);
-                                resultIntent.putExtra("amount", amount);
-                                resultIntent.putExtra("category", category);
-                                resultIntent.putExtra("description", description);
-                                setResult(RESULT_OK, resultIntent);
-                                finish();
-                            }
-
-                            @Override
-                            public void onError(String errorMessage) {
-                                tilAmount.setError("Lỗi: " + errorMessage);
-                                btnBack.setEnabled(true);
-                                btnSave.setEnabled(true);
-                            }
-                        }
-                );
-            } catch (NumberFormatException e) {
-                tilAmount.setError("Số tiền phải là một số hợp lệ");
-            } catch (java.text.ParseException e) {
-                tilDate.setError("Định dạng ngày không hợp lệ (dd/MM/yyyy)");
-            } catch (Exception e) {
-                tilAmount.setError("Lỗi không xác định: " + e.getMessage());
-                btnBack.setEnabled(true);
-                btnSave.setEnabled(true);
-            }
-        });
+//        btnSave.setOnClickListener(v -> {
+//            Log.d(TAG, "Save button clicked");
+//
+//            tilDate.setError(null);
+//            tilAmount.setError(null);
+//            tilCategory.setError(null);
+//            tilDescription.setError(null);
+//
+//            String date = etDate.getText().toString().trim();
+//            String amount = etAmount.getText().toString().trim();
+//            String category = etCategory.getText().toString().trim();
+//            String description = etDescription.getText().toString().trim();
+//            Log.d(TAG, "Input values: date=" + date + ", amount=" + amount + ", category=" + category + ", description=" + description);
+//
+//            if (date.isEmpty()) {
+//                Log.w(TAG, "Validation failed: Date is empty");
+//                tilDate.setError("Vui lòng chọn ngày");
+//                return;
+//            }
+//            if (amount.isEmpty()) {
+//                Log.w(TAG, "Validation failed: Amount is empty");
+//                tilAmount.setError("Vui lòng nhập số tiền");
+//                return;
+//            }
+//            if (category.isEmpty()) {
+//                Log.w(TAG, "Validation failed: Category is empty");
+//                tilCategory.setError("Vui lòng nhập danh mục");
+//                return;
+//            }
+//            if (description.isEmpty()) {
+//                Log.w(TAG, "Validation failed: Description is empty");
+//                tilDescription.setError("Vui lòng nhập mô tả");
+//                return;
+//            }
+//
+//            try {
+//                double amountValue = Double.parseDouble(amount);
+//                if (amountValue <= 0) {
+//                    tilAmount.setError("Số tiền phải lớn hơn 0");
+//                    return;
+//                }
+//
+//                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+//                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+//                inputFormat.setLenient(false);
+//                java.util.Date parsedDate = inputFormat.parse(date);
+//                String formattedDate = outputFormat.format(parsedDate);
+//
+//                String userId = "user1"; // Thay bằng userId thực tế từ session
+//
+//                btnBack.setEnabled(false);
+//                btnSave.setEnabled(false);
+//
+//                databaseHelper.addExpenseAsync(
+//                        userId,
+//                        String.valueOf(amountValue),
+//                        category,  // Đây là category_id, cần đảm bảo category hợp lệ
+//                        description,
+//                        formattedDate,
+//                        new DatabaseHelper.SimpleCallback() {
+//                            @Override
+//                            public void onSuccess() {
+//                                Intent resultIntent = new Intent();
+//                                resultIntent.putExtra("date", date);
+//                                resultIntent.putExtra("amount", amount);
+//                                resultIntent.putExtra("category", category);
+//                                resultIntent.putExtra("description", description);
+//                                setResult(RESULT_OK, resultIntent);
+//                                finish();
+//                            }
+//
+//                            @Override
+//                            public void onError(String errorMessage) {
+//                                tilAmount.setError("Lỗi: " + errorMessage);
+//                                btnBack.setEnabled(true);
+//                                btnSave.setEnabled(true);
+//                            }
+//                        }
+//                );
+//            } catch (NumberFormatException e) {
+//                tilAmount.setError("Số tiền phải là một số hợp lệ");
+//            } catch (java.text.ParseException e) {
+//                tilDate.setError("Định dạng ngày không hợp lệ (dd/MM/yyyy)");
+//            } catch (Exception e) {
+//                tilAmount.setError("Lỗi không xác định: " + e.getMessage());
+//                btnBack.setEnabled(true);
+//                btnSave.setEnabled(true);
+//            }
+//        });
         Log.d(TAG, "Save button listener set");
     }
 

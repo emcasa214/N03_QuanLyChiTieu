@@ -10,7 +10,9 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     ImageButton btnUser;
     AuthenticationManager auth;
     private String userId;
+    private TextView test;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         bell = findViewById(R.id.notification_button);
         btnUser = findViewById(R.id.btnUser);
         searchView = findViewById(R.id.search_view);
+        test = findViewById(R.id.section_title3);
         setSupportActionBar(toolbar);
     }
 
@@ -312,6 +316,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, notification_user.class);
             intent.putExtra("userId", userId);
             startActivity(intent);
+
         });
     }
 }
