@@ -447,6 +447,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         });
     }
 
+
+    /***
+     * User handle query
+     */
+
+
     public Users getUserById(String userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Users user = null;

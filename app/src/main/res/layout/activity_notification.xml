@@ -52,6 +52,7 @@
                 android:textColor="@color/white"
                 android:textSize="10sp"
                 android:visibility="gone"/>
+
         </RelativeLayout>
     </LinearLayout>
 
