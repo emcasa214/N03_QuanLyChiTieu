@@ -25,14 +25,31 @@
                 android:title="My App"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" >
 
-                <ImageButton
-                    android:id="@+id/notification_button"
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="right"
-                    android:layout_marginRight="10dp"
-                    android:backgroundTint="@color/black"
-                    android:background="@drawable/ic_empty_notifications"/>
+                    android:layout_marginRight="10dp">
+
+                    <ImageButton
+                        android:id="@+id/notification_button"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"
+                        android:backgroundTint="@color/black"
+                        android:background="@drawable/ic_empty_notifications"/>
+
+                    <!-- Badge hiển thị số thông báo chưa đọc -->
+                    <TextView
+                        android:id="@+id/badge_unread"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="top|end"
+                        android:background="@drawable/badge_circle"
+                        android:textColor="@color/white"
+                        android:textSize="10sp"
+                        android:gravity="center"
+                        android:visibility="visible"/>
+                </FrameLayout>
 
             </androidx.appcompat.widget.Toolbar>
 

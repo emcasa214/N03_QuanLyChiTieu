@@ -17,7 +17,19 @@
         android:background="@color/white"
         android:elevation="4dp">
 
+        <!-- Nút quay lại bên trái -->
+        <ImageButton
+            android:id="@+id/btn_back_report"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="4dp"
+            android:src="@drawable/icreturn"
+            android:scaleType="centerInside"
+            android:layout_marginRight="70dp"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
         <TextView
+            android:id="@+id/test"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Thống kê tài chính"

@@ -46,26 +46,30 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         this.categoryDAO = categoryDAO;
     }
 
-//    public void updateData(List<Budgets> newBudgets) {
-//        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new BudgetDiffCallback(this.budgetsList, newBudgets));
-//        this.budgetsList.clear();
-//        this.budgetsList.addAll(newBudgets);
-//        diffResult.dispatchUpdatesTo(this);
-//    } // đang bị lỗi ở hàm update
     public void updateData(List<Budgets> newBudgets) {
-        List<Budgets> newList = new ArrayList<>(newBudgets); // Tạo bản sao
-        new Thread(() -> {
-            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new BudgetDiffCallback(this.budgetsList, newList));
-            this.budgetsList.clear();
-            this.budgetsList.addAll(newList);
-            diffResult.dispatchUpdatesTo(this);
+        // Tạo bản sao để tránh tham chiếu
+        List<Budgets> updatedList = new ArrayList<>(newBudgets);
 
-//            activity.runOnUiThread(() -> {
-//                this.budgetsList.clear();
-//                this.budgetsList.addAll(newList);
-//                diffResult.dispatchUpdatesTo(this);
-//            });
-        }).start();
+        // So sánh và cập nhật từng item
+        for (int i = 0; i < updatedList.size(); i++) {
+            if (i < budgetsList.size()) {
+                if (!budgetsList.get(i).equals(updatedList.get(i))) {
+                    budgetsList.set(i, updatedList.get(i));
+                    notifyItemChanged(i); // Chỉ cập nhật item thay đổi
+                }
+            } else {
+                budgetsList.add(updatedList.get(i));
+                notifyItemInserted(i); // Thông báo item mới
+            }
+        }
+
+        // Xóa các item thừa (nếu có)
+        if (budgetsList.size() > updatedList.size()) {
+            for (int i = budgetsList.size() - 1; i >= updatedList.size(); i--) {
+                budgetsList.remove(i);
+                notifyItemRemoved(i); // Thông báo item bị xóa
+            }
+        }
     }
 
     private static class BudgetDiffCallback extends DiffUtil.Callback {
@@ -131,7 +135,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         holder.tvDescription.setText(budget.getDescription() != null ? budget.getDescription() : "");
 
         // Calculate progress
-        double spentAmount = 0; // Lấy từ DAO
+        double spentAmount = 30000; // Lấy từ DAO
         double progress = Math.min((spentAmount / budget.getAmount()) * 100, 100);
 
         holder.progressBar.setProgress((int) progress);

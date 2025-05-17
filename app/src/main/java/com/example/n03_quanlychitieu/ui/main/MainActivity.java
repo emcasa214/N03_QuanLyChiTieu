@@ -10,7 +10,9 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,7 +27,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.adapter.ThuChiAdapter;
+import com.example.n03_quanlychitieu.dao.NotificationDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
 import com.example.n03_quanlychitieu.ui.expense.ViewExpenseActivity;
@@ -41,6 +45,7 @@ import com.google.android.material.navigation.NavigationView;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,7 +61,9 @@ public class MainActivity extends AppCompatActivity {
     ImageButton btnUser;
     AuthenticationManager auth;
     private String userId;
-
+    private TextView badgeUnread;
+    private NotificationDAO notificationDAO;
+    private Notifications tb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         // Lấy thông tin người dùng hiện tại
         Users currentUser = auth.getCurrentUser();
         userId = currentUser != null ? currentUser.getUser_id() : null;
+
         if (userId == null) {
             Toast.makeText(this, "User ID is missing. Vui lòng đăng nhập lại.", Toast.LENGTH_SHORT).show();
             auth.logout();
@@ -87,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
+
 
         // Khởi tạo giao diện và các thành phần khác
         khoitao();
@@ -97,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
         setClickUser();
         setupSearch();
         navigateNotification();
+
     }
 
     public void khoitao() {
@@ -107,7 +117,13 @@ public class MainActivity extends AppCompatActivity {
         bell = findViewById(R.id.notification_button);
         btnUser = findViewById(R.id.btnUser);
         searchView = findViewById(R.id.search_view);
+        badgeUnread = findViewById(R.id.badge_unread);
         setSupportActionBar(toolbar);
+        tb = new Notifications(UUID.randomUUID().toString(), "Bạn đã đăng nhập vào ứng dụng!", false, null, "info", auth.getCurrentUser().getUser_id());
+
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        notificationDAO = new NotificationDAO(dbHelper.getWritableDatabase());
+        notificationDAO.insert(tb);
     }
 
     // Chuyển đến màn hình thông tin cá nhân
@@ -312,6 +328,23 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, notification_user.class);
             intent.putExtra("userId", userId);
             startActivity(intent);
+
         });
+    }
+
+    private void updateUnreadBadge() {
+        int unreadCount = notificationDAO.getUnreadCount(auth.getCurrentUser().getUser_id());
+        if (unreadCount > 0) {
+            badgeUnread.setText(String.valueOf(unreadCount));
+            badgeUnread.setVisibility(View.VISIBLE);
+        } else {
+            badgeUnread.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateUnreadBadge();
     }
 }

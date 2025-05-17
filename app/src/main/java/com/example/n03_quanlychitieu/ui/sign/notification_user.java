@@ -14,26 +14,28 @@ import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.adapter.NotificationAdapter;
 import com.example.n03_quanlychitieu.dao.NotificationDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Budgets;
 import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class notification_user extends AppCompatActivity {
     private RecyclerView recyclerView;
     private NotificationAdapter adapter;
     private List<Notifications> notificationsList = new ArrayList<>();
     private TabLayout tabLayout;
-    private FloatingActionButton fabMarkAllRead;
-    private TextView badgeUnread;
-    private ImageButton btnSearch;
     private View emtyView;
     private NotificationDAO notificationDAO;
     private String currentUserId;
     private AuthenticationManager authManager;
+    private TextView test_in;
+    private ImageButton btn_back;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +46,9 @@ public class notification_user extends AppCompatActivity {
         notificationDAO = new NotificationDAO(dbHelper.getWritableDatabase());
         recyclerView = findViewById(R.id.recycler_notifications);
         tabLayout = findViewById(R.id.tab_layout);
-        fabMarkAllRead = findViewById(R.id.fab_mark_all_read);
-        badgeUnread = findViewById(R.id.badge_unread);
-        btnSearch = findViewById(R.id.btn_search);
         emtyView = findViewById(R.id.empty_view);
+        test_in = findViewById(R.id.testOin);
+        btn_back = findViewById(R.id.btn_back_tb);
 
         authManager = AuthenticationManager.getInstance(notification_user.this);
 
@@ -67,17 +68,21 @@ public class notification_user extends AppCompatActivity {
         // Thiết lập tablayout
         setupTabLayout();
 
-        // Tai dữ liệu ban đầu
-        setupEvents();
-
+        btn_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     private void setupRecyclerView() {
         adapter = new NotificationAdapter(this, notificationsList, notification -> {
+
             // xử lý khi click vào thông báo
             if (!notification.isIs_read()) {
                 notificationDAO.markAsRead(notification.getNotification_id());
-                loadNotifications(false); // refresh danh sách
+                loadNotifications(false);
             }
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -112,17 +117,6 @@ public class notification_user extends AppCompatActivity {
         });
     }
 
-    private void setupEvents() {
-        fabMarkAllRead.setOnClickListener(v -> {
-            notificationDAO.markAllRead(currentUserId);
-            loadNotifications(false);
-            updateUnreadBadge();
-        });
-
-        btnSearch.setOnClickListener(v -> {
-
-        });
-    }
 
     private void loadNotifications(boolean onlyUnread) {
         List<Notifications> notifications;
@@ -132,7 +126,6 @@ public class notification_user extends AppCompatActivity {
             notifications = notificationDAO.getNotificationsByUser(currentUserId);
         }
         updateNotificationList(notifications);
-        updateUnreadBadge();
     }
 
     private void loadUnreadNotifications() {
@@ -144,7 +137,7 @@ public class notification_user extends AppCompatActivity {
         List<Notifications> allNotifications = notificationDAO.getNotificationsByUser(currentUserId);
         List<Notifications> warningNotifications = new ArrayList<>();
         for (Notifications notification : allNotifications) {
-            if ("warning".equals(notification.getNotification_type())) {
+            if ("warn".equals(notification.getNotification_type())) {
                 warningNotifications.add(notification);
             }
         }
@@ -154,6 +147,7 @@ public class notification_user extends AppCompatActivity {
     private void updateNotificationList(List<Notifications> notifications) {
         notificationsList.clear();
         notificationsList.addAll(notifications);
+
         adapter.updateData(notifications);
 
         // Hiển thị empty view nếu không có thông báo
@@ -166,20 +160,10 @@ public class notification_user extends AppCompatActivity {
         }
     }
 
-    private void updateUnreadBadge() {
-        int unreadCount = notificationDAO.getUnreadCount(currentUserId);
-        if (unreadCount > 0) {
-            badgeUnread.setText(String.valueOf(unreadCount));
-            badgeUnread.setVisibility(View.VISIBLE);
-        } else {
-            badgeUnread.setVisibility(View.GONE);
-        }
-    }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadNotifications(false);
-        updateUnreadBadge();
     }
 }

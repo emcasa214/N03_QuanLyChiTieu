@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.model.Budgets;
 import com.example.n03_quanlychitieu.model.Notifications;
 
 import java.text.SimpleDateFormat;
@@ -87,12 +88,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         if (notification == null) return;
 
         // Thiết lập icon dựa trên loại thông báo
-        int iconRes = "warning".equals(notification.getNotification_type()) ? R.drawable.ic_warning : R.drawable.ic_empty_notifications;
+        int iconRes = "warn".equals(notification.getNotification_type()) ? R.drawable.ic_warning : R.drawable.ic_empty_notifications;
 
         holder.ivIcon.setImageResource(iconRes);
 
         holder.tvTitle.setText(notification.getContent());
-        holder.tvMessage.setText(notification.getContent());
         holder.tvTime.setText(formatTime(notification.getCreate_at()));
 
         // Hiển thị indicator chưa đọc với animation
@@ -123,7 +123,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
             if (isToday(date)) {
                 return new SimpleDateFormat("HH:mm").format(date);
-            }else {
+            } else {
                 return new SimpleDateFormat("dd/MM").format(date);
             }
         } catch (Exception e) {
@@ -146,15 +146,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
         ImageView ivIcon;
         TextView tvTitle;
-        TextView tvMessage;
         TextView tvTime;
         View viewUnreadIndicator;
 
         public NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
             ivIcon = itemView.findViewById(R.id.iv_notification_icon);
-            tvTitle = itemView.findViewById(R.id.tv_notification_title);
-            tvMessage = itemView.findViewById(R.id.tv_notification_message);
+            tvTitle = itemView.findViewById(R.id.tv_notification_content);
             tvTime = itemView.findViewById(R.id.tv_notification_time);
             viewUnreadIndicator = itemView.findViewById(R.id.view_unread_indicator);
         }

@@ -53,6 +53,9 @@ public class ReportTransaction extends AppCompatActivity {
     private PDFGenerator pdfGenerator;
     private Date currentStartDate, currentEndDate;
     private boolean showIncome = true; // Mặc định hiển thị thu nhập
+    private ImageButton btn_back;
+
+    private TextView kiemtra;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +70,8 @@ public class ReportTransaction extends AppCompatActivity {
         DatabaseHelper dbHelper = new DatabaseHelper(this);
         reportDAO = new ReportDAO(dbHelper.getWritableDatabase());
         pdfGenerator = new PDFGenerator(this);
+        btn_back = findViewById(R.id.btn_back_report);
+        kiemtra = findViewById(R.id.test);
 
         ImageButton btnDownload = findViewById(R.id.btn_download);
         btnDownload.setOnClickListener(v -> checkPermissionAndGeneratePDF());
@@ -79,6 +84,13 @@ public class ReportTransaction extends AppCompatActivity {
 
         // Load dữ liệu mặc định (hôm nay)
         loadTodayData();
+
+        btn_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     // Kiểm tra quyền trước khi tạo PDF
@@ -268,6 +280,8 @@ public class ReportTransaction extends AppCompatActivity {
     private void loadExpenseData() {
         String userId = authManager.getCurrentUser().getUser_id();
         List<Expenses> expenses = reportDAO.getExpensesByTimeRange(userId, currentStartDate, currentEndDate);
+
+        kiemtra.setText(expenses.toString()); // test thử
 
         if (expenses.isEmpty()) {
             showEmptyView();
