@@ -1,8 +1,7 @@
 package com.example.n03_quanlychitieu.ui.income;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -17,36 +16,45 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.ui.main.MainActivity;
+import com.example.n03_quanlychitieu.ui.income.AddIncomeActivity;
+import com.example.n03_quanlychitieu.ui.income.UpdateIncomeActivity;
+import com.example.n03_quanlychitieu.ui.sign.LogIn;
+import com.example.n03_quanlychitieu.utils.AuthenticationManager;
+import com.google.android.material.appbar.AppBarLayout;
 
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ViewIncomeActivity extends AppCompatActivity {
-
     private static final int REQUEST_CODE_ADD_INCOME = 100;
     private static final int REQUEST_CODE_UPDATE_INCOME = 101;
-    private static final String PREFS_NAME = "IncomePrefs";
-    private static final String KEY_INCOME_LIST = "income_list";
     private static final String TAG = "ViewIncomeActivity";
-
     private TableLayout tableIncome;
     private List<Income> incomeList;
     private DecimalFormat decimalFormat;
-    private SharedPreferences sharedPreferences;
-    private int selectedPosition = -1; // Lưu vị trí của mục được chọn để sửa
+    private int selectedPosition = -1;
     private List<TableRow> tableRows = new ArrayList<>();
+    private DatabaseHelper databaseHelper;
+    private AuthenticationManager auth;
+    private String userId;
 
-    private static class Income {
+    public static class Income {
+        String id;
         String amount;
         String source;
         String date;
+        String categoryId;
 
-        Income(String amount, String source, String date) {
-            this.amount = amount != null ? amount : "";
-            this.source = source != null ? source : "";
-            this.date = date != null ? date : "";
+        public Income(String incomeId, double amount, String description, String createAt, String userId, String categoryId) {
+            this.id = incomeId;
+            this.amount = String.valueOf(amount);
+            this.source = description != null ? description : "Chưa có mô tả";
+            this.date = createAt != null ? createAt : "";
+            this.categoryId = categoryId;
         }
     }
 
@@ -54,30 +62,59 @@ public class ViewIncomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_income);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d(TAG, "onCreate started at " + LocalDateTime.now());
+        }
 
-        sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        auth = AuthenticationManager.getInstance(this);
+        databaseHelper = new DatabaseHelper(this);
+
+        if (!auth.isUserLoggedIn()) {
+            Toast.makeText(this, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LogIn.class));
+            finish();
+            return;
+        }
+
+        userId = getIntent().getStringExtra("userId");
+        if (userId == null) {
+            userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUser_id() : null;
+        }
+
+        if (userId == null) {
+            Toast.makeText(this, "User ID is missing", Toast.LENGTH_SHORT).show();
+            auth.logout();
+            startActivity(new Intent(this, LogIn.class));
+            finish();
+            return;
+        }
+        Log.d(TAG, "Received userId: " + userId);
+
         incomeList = new ArrayList<>();
         decimalFormat = new DecimalFormat("#,###");
 
+        AppBarLayout appBarLayout = findViewById(R.id.appBarLayout);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().setTitle("Thu nhập");
-                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            }
-        } else {
-            Log.e(TAG, "Toolbar is null");
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Thu nhập");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
         tableIncome = findViewById(R.id.tableIncome);
-        if (tableIncome == null) {
-            Log.e(TAG, "TableIncome is null");
-        }
 
         loadIncomeList();
         populateTable();
-        Log.d(TAG, "onCreate: Danh sách thu nhập ban đầu: " + incomeList.size() + " mục");
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("userId", userId);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -90,32 +127,28 @@ public class ViewIncomeActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_add_income) {
-            Intent intent = new Intent(ViewIncomeActivity.this, AddIncomeActivity.class);
+            Intent intent = new Intent(this, AddIncomeActivity.class);
+            intent.putExtra("userId", userId);
             startActivityForResult(intent, REQUEST_CODE_ADD_INCOME);
             return true;
         } else if (id == R.id.action_edit_income) {
-            Log.d(TAG, "Nhấn Sửa thu nhập, selectedPosition: " + selectedPosition);
             if (selectedPosition < 0 || selectedPosition >= incomeList.size()) {
                 Toast.makeText(this, "Vui lòng nhấn vào một mục để sửa", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "Vị trí không hợp lệ: " + selectedPosition + ", Kích thước danh sách: " + incomeList.size());
             } else {
                 Income income = incomeList.get(selectedPosition);
-                if (income != null) {
-                    Log.d(TAG, "Sửa thu nhập tại vị trí: " + selectedPosition + ", Dữ liệu: " + income.amount + ", " + income.source + ", " + income.date);
-                    Intent intent = new Intent(ViewIncomeActivity.this, UpdateIncomeActivity.class);
-                    intent.putExtra("amount", income.amount);
-                    intent.putExtra("source", income.source);
-                    intent.putExtra("date", income.date);
-                    intent.putExtra("position", selectedPosition);
-                    startActivityForResult(intent, REQUEST_CODE_UPDATE_INCOME);
-                } else {
-                    Toast.makeText(this, "Dữ liệu không hợp lệ", Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Dữ liệu tại vị trí " + selectedPosition + " là null");
-                }
+                Intent intent = new Intent(this, UpdateIncomeActivity.class);
+                intent.putExtra("userId", userId);
+                intent.putExtra("incomeId", income.id);
+                intent.putExtra("amount", income.amount);
+                intent.putExtra("source", income.source);
+                intent.putExtra("date", income.date);
+                intent.putExtra("categoryId", income.categoryId);
+                startActivityForResult(intent, REQUEST_CODE_UPDATE_INCOME);
             }
             return true;
         } else if (id == android.R.id.home) {
-            Intent intent = new Intent(ViewIncomeActivity.this, MainActivity.class);
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("userId", userId);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
             finish();
@@ -127,110 +160,42 @@ public class ViewIncomeActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_ADD_INCOME && resultCode == RESULT_OK && data != null) {
-            String amount = data.getStringExtra("amount");
-            String source = data.getStringExtra("source");
-            String date = data.getStringExtra("date");
-
-            if (amount != null && source != null && date != null) {
-                incomeList.add(new Income(amount, source, date));
-                saveIncomeList();
-                populateTable();
-                Log.d(TAG, "Thêm thu nhập thành công, danh sách: " + incomeList.size() + " mục");
-            } else {
-                Log.e(TAG, "Dữ liệu thêm không hợp lệ: amount=" + amount + ", source=" + source + ", date=" + date);
-            }
-        } else if (requestCode == REQUEST_CODE_UPDATE_INCOME && resultCode == RESULT_OK && data != null) {
-            int position = data.getIntExtra("position", -1);
-            Log.d(TAG, "Nhận kết quả sửa, position: " + position);
-            if (position >= 0 && position < incomeList.size()) {
-                String amount = data.getStringExtra("amount");
-                String source = data.getStringExtra("source");
-                String date = data.getStringExtra("date");
-                if (amount != null && source != null && date != null) {
-                    incomeList.set(position, new Income(amount, source, date));
-                    saveIncomeList();
-                    populateTable();
-                    selectedPosition = -1;
-                    resetRowBackgrounds();
-                    Log.d(TAG, "Cập nhật thành công tại vị trí: " + position + ", Dữ liệu: " + amount + ", " + source + ", " + date);
-                } else {
-                    Log.e(TAG, "Dữ liệu trả về không hợp lệ: amount=" + amount + ", source=" + source + ", date=" + date);
-                    Toast.makeText(this, "Lỗi cập nhật dữ liệu", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Log.e(TAG, "Vị trí không hợp lệ: " + position + ", Kích thước danh sách: " + incomeList.size());
-                Toast.makeText(this, "Lỗi cập nhật dữ liệu", Toast.LENGTH_SHORT).show();
-            }
+        if ((requestCode == REQUEST_CODE_ADD_INCOME || requestCode == REQUEST_CODE_UPDATE_INCOME) && resultCode == RESULT_OK) {
+            loadIncomeList();
+            populateTable();
+            selectedPosition = -1;
+            resetRowBackgrounds();
         }
-    }
-
-    private void saveIncomeList() {
-        StringBuilder sb = new StringBuilder();
-        for (Income income : incomeList) {
-            String safeAmount = (income.amount != null ? income.amount.replace("|", "").replace(";", "") : "");
-            String safeSource = (income.source != null ? income.source.replace("|", "").replace(";", "") : "");
-            String safeDate = (income.date != null ? income.date.replace("|", "").replace(";", "") : "");
-            sb.append(safeAmount).append("|").append(safeSource).append("|").append(safeDate).append(";");
-        }
-        sharedPreferences.edit().putString(KEY_INCOME_LIST, sb.toString()).apply();
-        Log.d(TAG, "Lưu danh sách thành công: " + sb.toString());
     }
 
     private void loadIncomeList() {
-        String data = sharedPreferences.getString(KEY_INCOME_LIST, "");
         incomeList.clear();
-        if (!data.isEmpty()) {
-            String[] records = data.split(";");
-            for (String record : records) {
-                if (record.trim().isEmpty()) continue;
-                String[] parts = record.split("\\|");
-                if (parts.length == 3) {
-                    incomeList.add(new Income(parts[0], parts[1], parts[2]));
-                } else {
-                    Log.w(TAG, "Dữ liệu không hợp lệ: " + record);
-                }
-            }
+        if (userId != null) {
+            incomeList.addAll(databaseHelper.getIncomesByUserId(userId));
         }
-        Log.d(TAG, "Tải danh sách thành công: " + incomeList.size() + " mục");
     }
 
     private void populateTable() {
-        if (tableIncome == null) {
-            Log.e(TAG, "TableIncome is null, không thể populate");
-            return;
-        }
         while (tableIncome.getChildCount() > 1) {
             tableIncome.removeViewAt(tableIncome.getChildCount() - 1);
         }
         tableRows.clear();
-
         for (int i = 0; i < incomeList.size(); i++) {
-            Income income = incomeList.get(i);
-            addIncomeToTable(income, i);
+            addIncomeToTable(incomeList.get(i), i);
         }
-        Log.d(TAG, "Cập nhật bảng thành công với " + incomeList.size() + " mục");
     }
 
     private void addIncomeToTable(Income income, int position) {
-        if (income == null) {
-            Log.e(TAG, "Income is null at position " + position);
-            return;
-        }
         TableRow newRow = new TableRow(this);
-        if (newRow == null) {
-            Log.e(TAG, "TableRow is null");
-            return;
-        }
         newRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
 
+        // Cột "Số tiền"
         TextView tvAmount = new TextView(this);
         try {
             double amountValue = Double.parseDouble(income.amount);
-            tvAmount.setText(decimalFormat.format(amountValue));
+            tvAmount.setText(decimalFormat.format(amountValue) + " VND");
         } catch (NumberFormatException e) {
-            tvAmount.setText(income.amount != null ? income.amount : "0");
-            Log.w(TAG, "Lỗi chuyển đổi số tiền tại vị trí " + position + ": " + e.getMessage());
+            tvAmount.setText(income.amount + " VND");
         }
         tvAmount.setPadding(8, 8, 8, 8);
         tvAmount.setTextSize(14);
@@ -238,16 +203,28 @@ public class ViewIncomeActivity extends AppCompatActivity {
         tvAmount.setLayoutParams(amountParams);
         newRow.addView(tvAmount);
 
+        // Cột "Danh mục"
+        TextView tvCategory = new TextView(this);
+        String categoryName = databaseHelper.getCategoryNameById(income.categoryId);
+        tvCategory.setText(categoryName != null ? categoryName : "Không xác định");
+        tvCategory.setPadding(8, 8, 8, 8);
+        tvCategory.setTextSize(14);
+        TableRow.LayoutParams categoryParams = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
+        tvCategory.setLayoutParams(categoryParams);
+        newRow.addView(tvCategory);
+
+        // Cột "Mô tả"
         TextView tvSource = new TextView(this);
-        tvSource.setText(income.source != null ? income.source : "");
+        tvSource.setText(income.source != null && !income.source.isEmpty() ? income.source : "Chưa có mô tả");
         tvSource.setPadding(8, 8, 8, 8);
         tvSource.setTextSize(14);
         TableRow.LayoutParams sourceParams = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
         tvSource.setLayoutParams(sourceParams);
         newRow.addView(tvSource);
 
+        // Cột "Thời gian"
         TextView tvDate = new TextView(this);
-        tvDate.setText(income.date != null ? income.date : "");
+        tvDate.setText(income.date != null && !income.date.isEmpty() ? income.date : "Chưa có thời gian");
         tvDate.setPadding(8, 8, 8, 8);
         tvDate.setTextSize(14);
         TableRow.LayoutParams dateParams = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
@@ -258,24 +235,26 @@ public class ViewIncomeActivity extends AppCompatActivity {
             selectedPosition = position;
             resetRowBackgrounds();
             newRow.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
-            Log.d(TAG, "Chọn hàng tại vị trí: " + selectedPosition + ", Dữ liệu: " + income.amount + ", " + income.source + ", " + income.date);
         });
 
         newRow.setOnLongClickListener(v -> {
-            new AlertDialog.Builder(ViewIncomeActivity.this)
+            new AlertDialog.Builder(this)
                     .setTitle("Xóa thu nhập")
                     .setMessage("Bạn có chắc muốn xóa mục này?")
                     .setPositiveButton("OK", (dialog, which) -> {
-                        if (position < incomeList.size()) {
-                            incomeList.remove(position);
-                            saveIncomeList();
-                            populateTable();
-                            selectedPosition = -1;
-                            Toast.makeText(ViewIncomeActivity.this, "Xóa thành công", Toast.LENGTH_SHORT).show();
-                            Log.d(TAG, "Xóa thành công tại vị trí: " + position);
-                        } else {
-                            Log.e(TAG, "Vị trí xóa không hợp lệ: " + position);
-                        }
+                        databaseHelper.deleteIncomeAsync(income.id, userId, new DatabaseHelper.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                loadIncomeList();
+                                populateTable();
+                                selectedPosition = -1;
+                                Toast.makeText(ViewIncomeActivity.this, "Xóa thành công", Toast.LENGTH_SHORT).show();
+                            }
+                            @Override
+                            public void onError(String errorMessage) {
+                                Toast.makeText(ViewIncomeActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     })
                     .setNegativeButton("Hủy", null)
                     .show();

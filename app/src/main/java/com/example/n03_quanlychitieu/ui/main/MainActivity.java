@@ -3,25 +3,19 @@ package com.example.n03_quanlychitieu.ui.main;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Adapter;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -32,14 +26,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.adapter.ThuChiAdapter;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
-import com.example.n03_quanlychitieu.model.Budgets;
-import com.example.n03_quanlychitieu.model.Expenses;
-import com.example.n03_quanlychitieu.model.Incomes;
-import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
 import com.example.n03_quanlychitieu.ui.expense.ViewExpenseActivity;
-import com.example.n03_quanlychitieu.ui.sign.BeginActivity;
+import com.example.n03_quanlychitieu.ui.income.ViewIncomeActivity;
 import com.example.n03_quanlychitieu.ui.sign.LogIn;
 import com.example.n03_quanlychitieu.ui.sign.ReportTransaction;
 import com.example.n03_quanlychitieu.ui.sign.SetBudgets;
@@ -47,16 +37,10 @@ import com.example.n03_quanlychitieu.ui.sign.notification_user;
 import com.example.n03_quanlychitieu.ui.user.UserProfileActivity;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.google.android.material.navigation.NavigationView;
-import com.example.n03_quanlychitieu.ui.income.ViewIncomeActivity;
 
-import java.lang.reflect.Array;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -68,22 +52,43 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView rvThuChi;
     ArrayList<String> listThuChistr;
     ThuChiAdapter adapter;
-    ImageButton bell; // xuandong
-
-    ImageButton btnUser; // qtrang
-
+    ImageButton bell;
+    ImageButton btnUser;
     AuthenticationManager auth;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("MainActivity", "MainActivity started");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d("MainActivity", "MainActivity started at " + LocalDateTime.now());
+        }
         setContentView(R.layout.activity_main);
 
+        // Khởi tạo AuthenticationManager và DatabaseHelper
+        auth = AuthenticationManager.getInstance(this);
         dbHelper = new DatabaseHelper(this);
-//        dbHelper.getReadableDatabase();
 
-//        dbHelper.insertSampleData();
+        // Kiểm tra trạng thái đăng nhập
+        if (!auth.isUserLoggedIn()) {
+            Toast.makeText(this, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LogIn.class));
+            finish();
+            return;
+        }
+
+        // Lấy thông tin người dùng hiện tại
+        Users currentUser = auth.getCurrentUser();
+        userId = currentUser != null ? currentUser.getUser_id() : null;
+        if (userId == null) {
+            Toast.makeText(this, "User ID is missing. Vui lòng đăng nhập lại.", Toast.LENGTH_SHORT).show();
+            auth.logout();
+            startActivity(new Intent(this, LogIn.class));
+            finish();
+            return;
+        }
+
+        // Khởi tạo giao diện và các thành phần khác
         khoitao();
         toggle();
         menuClick();
@@ -91,39 +96,31 @@ public class MainActivity extends AppCompatActivity {
         takeListView();
         setClickUser();
         setupSearch();
-//        onBackPressed();
         navigateNotification();
-
     }
 
-    public void khoitao(){
+    public void khoitao() {
         drawerLayout = findViewById(R.id.drawmain);
         toolbar = findViewById(R.id.toolbar);
         navView = findViewById(R.id.navigation_view);
         rvThuChi = findViewById(R.id.rvThuChi);
-        bell = findViewById(R.id.notification_button); // xuandong
-
+        bell = findViewById(R.id.notification_button);
         btnUser = findViewById(R.id.btnUser);
         searchView = findViewById(R.id.search_view);
-      
         setSupportActionBar(toolbar);
-
     }
 
-    //set up click cho icon user sang màn hình thông tin cá nhân
-    public void setClickUser(){
-        btnUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, UserProfileActivity.class);
-                startActivity(intent);
-            }
+    // Chuyển đến màn hình thông tin cá nhân
+    public void setClickUser() {
+        btnUser.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, UserProfileActivity.class);
+            intent.putExtra("userId", userId);
+            startActivity(intent);
         });
     }
 
-     // toggle() – thêm nút “hamburger” - nút 3 gạch ngang ngang í :)), vào toolbar để điều khiển đóng/mở drawer
-    public void toggle(){
-        // Thêm nút toggle (3 gạch)
+    // Thêm nút hamburger để mở/đóng drawer
+    public void toggle() {
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
                 R.string.navigation_drawer_open,
@@ -131,41 +128,47 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
     }
-    // menuClick() – Hàm gọi hàm xử lý sự kiện khi người dùng chọn một mục trong NavigationView
-    public void menuClick(){
-        navView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                drawerLayout.closeDrawer(GravityCompat.START);
-                int id = item.getItemId();
-                handleNavigation(id);
-                return true;
-            }
+
+    // Xử lý sự kiện click trên NavigationView
+    public void menuClick() {
+        navView.setNavigationItemSelectedListener(item -> {
+            drawerLayout.closeDrawer(GravityCompat.START);
+            int id = item.getItemId();
+            handleNavigation(id);
+            return true;
         });
     }
 
-     // handleNavigation() – xử lý sự kiện khi người dùng chọn một mục trong NavigationView, làm nút nào thì xử lý nút đó vô đây
+    // Xử lý điều hướng khi chọn mục trong NavigationView
     private void handleNavigation(int itemId) {
+        Intent intent = null;
         if (itemId == R.id.nav_home) {
-            startActivity(new Intent(this, MainActivity.class));
-        }
-        else if(itemId == R.id.nav_view_categories){
-            startActivity(new Intent(this, AddCategoryActivity.class));
+            intent = new Intent(this, MainActivity.class);
+        } else if (itemId == R.id.nav_view_categories) {
+            intent = new Intent(this, AddCategoryActivity.class);
         } else if (itemId == R.id.nav_statistics) {
-            startActivity(new Intent(this, ReportTransaction.class));
-        } else if(itemId == R.id.nav_budget) {
-            startActivity(new Intent(this, SetBudgets.class));
-        } else if(itemId == R.id.nav_view_income){
-            startActivity(new Intent(this, ViewIncomeActivity.class));
-        } else if(itemId == R.id.nav_view_expense) {
-            startActivity(new Intent(this, ViewExpenseActivity.class));
+            intent = new Intent(this, ReportTransaction.class);
+        } else if (itemId == R.id.nav_budget) {
+            intent = new Intent(this, SetBudgets.class);
+        } else if (itemId == R.id.nav_view_income) {
+            intent = new Intent(this, ViewIncomeActivity.class);
+        } else if (itemId == R.id.nav_view_expense) {
+            intent = new Intent(this, ViewExpenseActivity.class);
         }
 
-
-
+        // Truyền userId cho tất cả các Intent
+        if (intent != null && userId != null) {
+            intent.putExtra("userId", userId);
+            startActivity(intent);
+        } else if (intent != null) {
+            Toast.makeText(this, "Lỗi: User ID không tồn tại", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LogIn.class));
+            finish();
+        }
     }
-//    set up cho ô tìm kiếm
-    public void setupSearch(){
+
+    // Cài đặt ô tìm kiếm
+    public void setupSearch() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -176,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextChange(String newText) {
                 if (newText.isEmpty()) {
-                    takeListView(); // Hiển thị lại toàn bộ khi xóa tìm kiếm
+                    takeListView();
                 } else {
                     searchListView(newText);
                 }
@@ -184,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     private void searchListView(String keyword) {
         new Thread(() -> {
             SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -191,8 +195,8 @@ public class MainActivity extends AppCompatActivity {
 
             // Tìm kiếm trong Incomes
             Cursor cIn = db.rawQuery(
-                    "SELECT description, amount, create_at FROM Incomes WHERE description LIKE ?",
-                    new String[]{"%" + keyword + "%"});
+                    "SELECT description, amount, create_at FROM Incomes WHERE description LIKE ? AND user_id = ?",
+                    new String[]{"%" + keyword + "%", userId});
             while (cIn.moveToNext()) {
                 String d = cIn.getString(0);
                 double a = cIn.getDouble(1);
@@ -204,8 +208,8 @@ public class MainActivity extends AppCompatActivity {
 
             // Tìm kiếm trong Expenses
             Cursor cEx = db.rawQuery(
-                    "SELECT description, amount, create_at FROM Expenses WHERE description LIKE ?",
-                    new String[]{"%" + keyword + "%"});
+                    "SELECT description, amount, create_at FROM Expenses WHERE description LIKE ? AND user_id = ?",
+                    new String[]{"%" + keyword + "%", userId});
             while (cEx.moveToNext()) {
                 String d = cEx.getString(0);
                 double a = cEx.getDouble(1);
@@ -229,21 +233,25 @@ public class MainActivity extends AppCompatActivity {
             });
         }).start();
     }
-//    //hàm xử lý hiển thị 10 thu chi gần nhất vào Danh sách thu chi - 12/5/2025
+
+    // Cài đặt RecyclerView
     private void setupRecyclerView() {
         listThuChistr = new ArrayList<>();
         adapter = new ThuChiAdapter(listThuChistr);
         rvThuChi.setLayoutManager(new LinearLayoutManager(this));
         rvThuChi.setAdapter(adapter);
     }
+
+    // Lấy danh sách thu chi
     private void takeListView() {
         new Thread(() -> {
             SQLiteDatabase db = dbHelper.getReadableDatabase();
             ArrayList<String> temp = new ArrayList<>();
 
-            // Lấy dữ liệu và sắp xếp theo thời gian giảm dần (mới nhất trước)
+            // Lấy dữ liệu từ Incomes
             Cursor cIn = db.rawQuery(
-                    "SELECT description, amount, create_at FROM Incomes", null);
+                    "SELECT description, amount, create_at FROM Incomes WHERE user_id = ?",
+                    new String[]{userId});
             while (cIn.moveToNext()) {
                 String d = cIn.getString(0);
                 double a = cIn.getDouble(1);
@@ -253,8 +261,10 @@ public class MainActivity extends AppCompatActivity {
             }
             cIn.close();
 
+            // Lấy dữ liệu từ Expenses
             Cursor cEx = db.rawQuery(
-                    "SELECT description, amount, create_at FROM Expenses", null);
+                    "SELECT description, amount, create_at FROM Expenses WHERE user_id = ?",
+                    new String[]{userId});
             while (cEx.moveToNext()) {
                 String d = cEx.getString(0);
                 double a = cEx.getDouble(1);
@@ -264,14 +274,13 @@ public class MainActivity extends AppCompatActivity {
             }
             cEx.close();
 
-            // Sắp xếp theo thời gian giảm dần (giả sử create_at có định dạng yyyy-MM-dd hoặc yyyy-MM-dd HH:mm:ss)
+            // Sắp xếp theo thời gian giảm dần
             Collections.sort(temp, (s1, s2) -> {
                 String date1 = s1.split(" - ")[0];
                 String date2 = s2.split(" - ")[0];
-                return date2.compareTo(date1); // giảm dần
+                return date2.compareTo(date1);
             });
 
-            // Cập nhật RecyclerView
             runOnUiThread(() -> {
                 listThuChistr.clear();
                 listThuChistr.addAll(temp);
@@ -280,47 +289,29 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-
-//    @Override
-//    public void onBackPressed() {
-//        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-//            drawerLayout.closeDrawer(GravityCompat.START);
-//        } else {
-//            super.onBackPressed();
-//        }
-//    }
-    /**
-     * onBackPressed() – ghi đè để nếu drawer đang mở thì đóng drawer,
-     *                ngược lại mới thực hiện hành vi back mặc định
-     */
+    // Xử lý nút Back
     private boolean doubleBackToExitPressedOnce = false;
 
     @Override
     public void onBackPressed() {
         if (doubleBackToExitPressedOnce) {
             super.onBackPressed();
-            finishAffinity(); // Đóng hoàn toàn ứng dụng
+            finishAffinity();
             return;
         }
 
         this.doubleBackToExitPressedOnce = true;
         Toast.makeText(this, "Nhấn BACK lần nữa để thoát", Toast.LENGTH_SHORT).show();
 
-        // Reset cờ sau 3 giây
-        new Handler(Looper.getMainLooper()).postDelayed(() ->
-                doubleBackToExitPressedOnce = false, 3000);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 3000);
     }
 
-    /**
-     * Notification
-     */
+    // Điều hướng đến màn hình thông báo
     private void navigateNotification() {
-        bell.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, notification_user.class);
-                startActivity(intent);
-            }
+        bell.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, notification_user.class);
+            intent.putExtra("userId", userId);
+            startActivity(intent);
         });
     }
 }

@@ -88,25 +88,45 @@
                     tools:text="1000000" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Source input -->
+            <!-- Category spinner -->
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilSource"
+                android:id="@+id/tilCategory"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Nguồn thu nhập"
+                android:hint="Danh mục"
                 app:errorEnabled="true"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tilAmount">
 
+                <Spinner
+                    android:id="@+id/spinnerCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="Chọn danh mục thu nhập"
+                    android:padding="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Description input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSource"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Mô tả"
+                app:errorEnabled="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tilCategory">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etSource"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:contentDescription="Nhập nguồn thu nhập (ví dụ: Lương)"
+                    android:contentDescription="Nhập mô tả thu nhập"
                     android:inputType="text"
-                    tools:text="Lương" />
+                    tools:text="Lương tháng 5" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Date input -->
@@ -149,6 +169,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tilDate" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

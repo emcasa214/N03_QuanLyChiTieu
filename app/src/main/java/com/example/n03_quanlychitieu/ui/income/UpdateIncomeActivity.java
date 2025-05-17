@@ -1,137 +1,214 @@
 package com.example.n03_quanlychitieu.ui.income;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class UpdateIncomeActivity extends AppCompatActivity {
-
     private static final String TAG = "UpdateIncomeActivity";
-
     private TextInputEditText etAmount, etSource, etDate;
+    private TextInputLayout tilAmount, tilSource, tilDate, tilCategory;
     private Button btnUpdate, btnCancel;
-    private Calendar calendar;
+    private Spinner spinnerCategory;
+    private DatabaseHelper databaseHelper;
+    private String userId, incomeId;
+    private Map<String, String> categoryNameToIdMap; // Ánh xạ giữa tên danh mục và categoryId
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_update_income);
 
-        calendar = Calendar.getInstance();
+        databaseHelper = new DatabaseHelper(this);
 
-        // Khởi tạo Toolbar
         Toolbar toolbar = findViewById(R.id.toolbarUpdate);
         setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-        toolbar.setNavigationOnClickListener(v -> finish());
 
-        // Khởi tạo views
+        tilAmount = findViewById(R.id.tilAmount);
+        tilSource = findViewById(R.id.tilSource);
+        tilDate = findViewById(R.id.tilDate);
+        tilCategory = findViewById(R.id.tilCategory);
         etAmount = findViewById(R.id.etAmount);
         etSource = findViewById(R.id.etSource);
         etDate = findViewById(R.id.etDate);
+        spinnerCategory = findViewById(R.id.spinnerCategory);
         btnUpdate = findViewById(R.id.btnUpdate);
         btnCancel = findViewById(R.id.btnCancel);
 
-        // Lấy dữ liệu từ Intent
-        Intent intent = getIntent();
-        String amount = intent.getStringExtra("amount");
-        String source = intent.getStringExtra("source");
-        String date = intent.getStringExtra("date");
-        int position = intent.getIntExtra("position", -1);
+        userId = getIntent().getStringExtra("userId");
+        incomeId = getIntent().getStringExtra("incomeId");
 
-        Log.d(TAG, "Nhận dữ liệu: amount=" + amount + ", source=" + source + ", date=" + date + ", position=" + position);
-
-        if (amount != null) {
-            etAmount.setText(amount);
-        } else {
-            Log.w(TAG, "Amount is null");
-        }
-        if (source != null) {
-            etSource.setText(source);
-        } else {
-            Log.w(TAG, "Source is null");
-        }
-        if (date != null) {
-            etDate.setText(date);
-        } else {
-            Log.w(TAG, "Date is null");
+        if (userId == null || incomeId == null) {
+            Toast.makeText(this, "User ID or Income ID is missing", Toast.LENGTH_SHORT).show();
+            setResult(RESULT_CANCELED);
+            finish();
+            return;
         }
 
-        // DatePicker cho trường ngày
+        categoryNameToIdMap = new HashMap<>();
+
+        etAmount.setText(getIntent().getStringExtra("amount"));
+        etSource.setText(getIntent().getStringExtra("source"));
+        etDate.setText(getIntent().getStringExtra("date"));
+
+        loadCategories(getIntent().getStringExtra("categoryId"));
+
         etDate.setOnClickListener(v -> showDatePicker());
 
-        // Xử lý nút Cập nhật
-        btnUpdate.setOnClickListener(v -> {
-            String newAmount = etAmount.getText().toString().trim();
-            String newSource = etSource.getText().toString().trim();
-            String newDate = etDate.getText().toString().trim();
-
-            if (!newAmount.isEmpty() && !newSource.isEmpty() && !newDate.isEmpty()) {
-                try {
-                    Double.parseDouble(newAmount);
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("amount", newAmount);
-                    resultIntent.putExtra("source", newSource);
-                    resultIntent.putExtra("date", newDate);
-                    resultIntent.putExtra("position", position);
-                    setResult(RESULT_OK, resultIntent);
-                    Log.d(TAG, "Gửi dữ liệu trở lại: amount=" + newAmount + ", source=" + newSource + ", date=" + newDate + ", position=" + position);
-                    finish();
-                } catch (NumberFormatException e) {
-                    etAmount.setError("Số tiền không hợp lệ");
-                    Log.w(TAG, "Số tiền không hợp lệ: " + newAmount);
-                }
-            } else {
-                etAmount.setError(newAmount.isEmpty() ? "Vui lòng nhập số tiền" : null);
-                etSource.setError(newSource.isEmpty() ? "Vui lòng nhập nguồn" : null);
-                etDate.setError(newDate.isEmpty() ? "Vui lòng chọn ngày" : null);
-                Log.w(TAG, "Dữ liệu không hợp lệ: amount=" + newAmount + ", source=" + newSource + ", date=" + newDate);
-            }
+        btnCancel.setOnClickListener(v -> {
+            setResult(RESULT_CANCELED);
+            finish();
         });
 
-        // Xử lý nút Hủy
-        btnCancel.setOnClickListener(v -> {
-            Log.d(TAG, "Nhấn Hủy");
-            finish();
+        btnUpdate.setOnClickListener(v -> {
+            tilAmount.setError(null);
+            tilSource.setError(null);
+            tilDate.setError(null);
+            tilCategory.setError(null);
+
+            String amount = etAmount.getText().toString().trim();
+            String source = etSource.getText().toString().trim();
+            String date = etDate.getText().toString().trim();
+            String selectedCategoryName = spinnerCategory.getSelectedItem() != null ?
+                    spinnerCategory.getSelectedItem().toString() : null;
+            String categoryId = selectedCategoryName != null ? categoryNameToIdMap.get(selectedCategoryName) : null;
+
+            if (amount.isEmpty()) {
+                tilAmount.setError("Vui lòng nhập số tiền");
+                return;
+            }
+            if (source.isEmpty()) {
+                tilSource.setError("Vui lòng nhập nguồn thu nhập");
+                return;
+            }
+            if (date.isEmpty()) {
+                tilDate.setError("Vui lòng chọn ngày");
+                return;
+            }
+            if (categoryId == null || categoryId.isEmpty()) {
+                tilCategory.setError("Vui lòng chọn danh mục");
+                return;
+            }
+
+            try {
+                double amountValue = Double.parseDouble(amount);
+                if (amountValue <= 0) {
+                    tilAmount.setError("Số tiền phải lớn hơn 0");
+                    return;
+                }
+
+                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                inputFormat.setLenient(false);
+                java.util.Date parsedDate = inputFormat.parse(date);
+                String formattedDate = outputFormat.format(parsedDate);
+
+                btnUpdate.setEnabled(false);
+                btnCancel.setEnabled(false);
+
+                databaseHelper.updateIncomeAsync(
+                        incomeId,
+                        userId,
+                        String.valueOf(amountValue),
+                        categoryId,
+                        source,
+                        formattedDate,
+                        new DatabaseHelper.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                setResult(RESULT_OK);
+                                Toast.makeText(UpdateIncomeActivity.this, "Cập nhật thu nhập thành công", Toast.LENGTH_SHORT).show();
+                                finish();
+                            }
+
+                            @Override
+                            public void onError(String errorMessage) {
+                                tilAmount.setError("Lỗi: " + errorMessage);
+                                btnUpdate.setEnabled(true);
+                                btnCancel.setEnabled(true);
+                                Log.e(TAG, "Error updating income: " + errorMessage);
+                            }
+                        }
+                );
+            } catch (NumberFormatException e) {
+                tilAmount.setError("Số tiền phải là một số hợp lệ");
+                Log.e(TAG, "NumberFormatException: " + e.getMessage());
+            } catch (java.text.ParseException e) {
+                tilDate.setError("Định dạng ngày không hợp lệ (dd/MM/yyyy)");
+                Log.e(TAG, "ParseException: " + e.getMessage());
+            }
         });
     }
 
     private void showDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 this,
-                (view, year, month, dayOfMonth) -> {
-                    calendar.set(year, month, dayOfMonth);
-                    String date = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year);
-                    etDate.setText(date);
-                    Log.d(TAG, "Chọn ngày: " + date);
+                (view, selectedYear, selectedMonth, selectedDay) -> {
+                    Calendar selectedDate = Calendar.getInstance();
+                    selectedDate.set(selectedYear, selectedMonth, selectedDay);
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                    etDate.setText(sdf.format(selectedDate.getTime()));
                 },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        );
+                year, month, day);
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         datePickerDialog.show();
     }
 
-    @Override
-    public boolean onOptionsItemSelected(android.view.MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            Log.d(TAG, "Nhấn nút Back trên Toolbar");
-            finish();
-            return true;
+    private void loadCategories(String selectedCategoryId) {
+        List<String> categoryNames = new ArrayList<>();
+        int selectedPosition = 0;
+        try {
+            List<DatabaseHelper.Category> categoryList = databaseHelper.getCategoriesByUserIdAndType(userId, "income");
+            if (categoryList.isEmpty()) {
+                Toast.makeText(this, "Không có danh mục thu nhập.", Toast.LENGTH_LONG).show();
+                setResult(RESULT_CANCELED);
+                finish();
+                return;
+            }
+            for (int i = 0; i < categoryList.size(); i++) {
+                DatabaseHelper.Category cat = categoryList.get(i);
+                categoryNames.add(cat.getName());
+                categoryNameToIdMap.put(cat.getName(), cat.getCategoryId());
+                if (cat.getCategoryId().equals(selectedCategoryId)) {
+                    selectedPosition = i;
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading categories: " + e.getMessage());
+            Toast.makeText(this, "Lỗi tải danh mục. Vui lòng thử lại.", Toast.LENGTH_SHORT).show();
+            return;
         }
-        return super.onOptionsItemSelected(item);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(adapter);
+        spinnerCategory.setSelection(selectedPosition);
     }
 }

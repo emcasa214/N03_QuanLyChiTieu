@@ -2,23 +2,34 @@ package com.example.n03_quanlychitieu.ui.income;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
+import com.example.n03_quanlychitieu.ui.sign.LogIn;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class AddIncomeActivity extends AppCompatActivity {
     private static final String TAG = "AddIncomeActivity";
@@ -26,16 +37,43 @@ public class AddIncomeActivity extends AppCompatActivity {
     private TextInputLayout tilAmount, tilSource, tilDate;
     private Button btnSave;
     private ImageButton btnBack;
+    private Spinner spinnerCategory;
+    private TextInputLayout tilCategory;
     private DatabaseHelper databaseHelper;
     private AuthenticationManager auth;
+    private String userId;
+    private Map<String, String> categoryNameToIdMap; // Ánh xạ giữa tên danh mục và categoryId
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_income);
-        Log.d(TAG, "onCreate called");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d(TAG, "onCreate called at " + LocalDateTime.now());
+        }
 
         databaseHelper = new DatabaseHelper(this);
+        auth = AuthenticationManager.getInstance(this);
+
+        if (!auth.isUserLoggedIn()) {
+            Toast.makeText(this, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, LogIn.class));
+            finish();
+            return;
+        }
+
+        userId = getIntent().getStringExtra("userId");
+        if (userId == null) {
+            userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUser_id() : null;
+        }
+        if (userId == null) {
+            Toast.makeText(this, "User ID is missing", Toast.LENGTH_SHORT).show();
+            auth.logout();
+            startActivity(new Intent(this, LogIn.class));
+            finish();
+            return;
+        }
+        Log.d(TAG, "Received userId: " + userId);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -43,19 +81,25 @@ public class AddIncomeActivity extends AppCompatActivity {
         tilAmount = findViewById(R.id.tilAmount);
         tilSource = findViewById(R.id.tilSource);
         tilDate = findViewById(R.id.tilDate);
+        tilCategory = findViewById(R.id.tilCategory);
         etAmount = findViewById(R.id.etAmount);
         etSource = findViewById(R.id.etSource);
         etDate = findViewById(R.id.etDate);
+        spinnerCategory = findViewById(R.id.spinnerCategory);
         btnSave = findViewById(R.id.btnSave);
         btnBack = findViewById(R.id.btnBack);
-        auth = AuthenticationManager.getInstance(this);
+
+        categoryNameToIdMap = new HashMap<>();
 
         if (savedInstanceState != null) {
             etAmount.setText(savedInstanceState.getString("amount"));
             etSource.setText(savedInstanceState.getString("source"));
             etDate.setText(savedInstanceState.getString("date"));
-            Log.d(TAG, "Restored state: amount=" + etAmount.getText().toString() + ", source=" + etSource.getText().toString() + ", date=" + etDate.getText().toString());
+            Log.d(TAG, "Restored state: amount=" + etAmount.getText().toString() +
+                    ", source=" + etSource.getText().toString() + ", date=" + etDate.getText().toString());
         }
+
+        loadCategories();
 
         etDate.setOnClickListener(v -> showDatePicker());
         Log.d(TAG, "Date picker listener set");
@@ -67,32 +111,37 @@ public class AddIncomeActivity extends AppCompatActivity {
         });
 
         btnSave.setOnClickListener(v -> {
-            Log.d(TAG, "Save button clicked");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Log.d(TAG, "Save button clicked at " + LocalDateTime.now());
+            }
 
             tilAmount.setError(null);
             tilSource.setError(null);
             tilDate.setError(null);
+            tilCategory.setError(null);
 
             String amount = etAmount.getText().toString().trim();
             String source = etSource.getText().toString().trim();
             String date = etDate.getText().toString().trim();
-            Log.d(TAG, "Input values: amount=" + amount + ", source=" + source + ", date=" + date);
+            String selectedCategoryName = spinnerCategory.getSelectedItem() != null ?
+                    spinnerCategory.getSelectedItem().toString() : null;
+            String categoryId = selectedCategoryName != null ? categoryNameToIdMap.get(selectedCategoryName) : null;
+            Log.d(TAG, "Input values: amount=" + amount + ", source=" + source + ", date=" + date + ", categoryId=" + categoryId);
 
             if (amount.isEmpty()) {
-                Log.w(TAG, "Validation failed: Amount is empty");
                 tilAmount.setError("Vui lòng nhập số tiền");
                 return;
             }
-
             if (source.isEmpty()) {
-                Log.w(TAG, "Validation failed: Source is empty");
                 tilSource.setError("Vui lòng nhập nguồn thu nhập");
                 return;
             }
-
             if (date.isEmpty()) {
-                Log.w(TAG, "Validation failed: Date is empty");
                 tilDate.setError("Vui lòng chọn ngày");
+                return;
+            }
+            if (categoryId == null || categoryId.isEmpty()) {
+                tilCategory.setError("Vui lòng chọn danh mục");
                 return;
             }
 
@@ -104,12 +153,10 @@ public class AddIncomeActivity extends AppCompatActivity {
                 }
 
                 SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()); // Định dạng thành ngày-tháng-năm
                 inputFormat.setLenient(false);
                 java.util.Date parsedDate = inputFormat.parse(date);
                 String formattedDate = outputFormat.format(parsedDate);
-
-                String userId = auth.getCurrentUser().getUser_id();
 
                 btnBack.setEnabled(false);
                 btnSave.setEnabled(false);
@@ -117,7 +164,8 @@ public class AddIncomeActivity extends AppCompatActivity {
                 databaseHelper.addIncomeAsync(
                         userId,
                         String.valueOf(amountValue),
-                        "1",
+                        categoryId,
+                        source,
                         formattedDate,
                         new DatabaseHelper.SimpleCallback() {
                             @Override
@@ -127,6 +175,7 @@ public class AddIncomeActivity extends AppCompatActivity {
                                 resultIntent.putExtra("source", source);
                                 resultIntent.putExtra("date", date);
                                 setResult(RESULT_OK, resultIntent);
+                                Toast.makeText(AddIncomeActivity.this, "Thêm thu nhập thành công", Toast.LENGTH_SHORT).show();
                                 finish();
                             }
 
@@ -135,17 +184,21 @@ public class AddIncomeActivity extends AppCompatActivity {
                                 tilAmount.setError("Lỗi: " + errorMessage);
                                 btnBack.setEnabled(true);
                                 btnSave.setEnabled(true);
+                                Log.e(TAG, "Error adding income: " + errorMessage);
                             }
                         }
                 );
             } catch (NumberFormatException e) {
                 tilAmount.setError("Số tiền phải là một số hợp lệ");
+                Log.e(TAG, "NumberFormatException: " + e.getMessage());
             } catch (java.text.ParseException e) {
                 tilDate.setError("Định dạng ngày không hợp lệ (dd/MM/yyyy)");
+                Log.e(TAG, "ParseException: " + e.getMessage());
             } catch (Exception e) {
                 tilAmount.setError("Lỗi không xác định: " + e.getMessage());
                 btnBack.setEnabled(true);
                 btnSave.setEnabled(true);
+                Log.e(TAG, "Unexpected error: " + e.getMessage());
             }
         });
         Log.d(TAG, "Save button listener set");
@@ -157,6 +210,8 @@ public class AddIncomeActivity extends AppCompatActivity {
         outState.putString("amount", etAmount.getText().toString().trim());
         outState.putString("source", etSource.getText().toString().trim());
         outState.putString("date", etDate.getText().toString().trim());
+        Log.d(TAG, "Saved instance state: amount=" + etAmount.getText().toString() +
+                ", source=" + etSource.getText().toString() + ", date=" + etDate.getText().toString());
     }
 
     private void showDatePicker() {
@@ -172,9 +227,37 @@ public class AddIncomeActivity extends AppCompatActivity {
                     selectedDate.set(selectedYear, selectedMonth, selectedDay);
                     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                     etDate.setText(sdf.format(selectedDate.getTime()));
+                    Log.d(TAG, "Selected date: " + sdf.format(selectedDate.getTime()));
                 },
                 year, month, day);
         datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
         datePickerDialog.show();
+    }
+
+    private void loadCategories() {
+        List<String> categoryNames = new ArrayList<>();
+        try {
+            List<DatabaseHelper.Category> categoryList = databaseHelper.getCategoriesByUserIdAndType(userId, "income");
+            if (categoryList.isEmpty()) {
+                Toast.makeText(this, "Không có danh mục thu nhập. Vui lòng thêm danh mục tại AddCategoryActivity.", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(this, AddCategoryActivity.class);
+                intent.putExtra("userId", userId);
+                startActivity(intent);
+                finish();
+                return;
+            }
+            for (DatabaseHelper.Category cat : categoryList) {
+                categoryNames.add(cat.getName());
+                categoryNameToIdMap.put(cat.getName(), cat.getCategoryId());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading categories: " + e.getMessage());
+            Toast.makeText(this, "Lỗi tải danh mục. Vui lòng thử lại.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(adapter);
     }
 }
