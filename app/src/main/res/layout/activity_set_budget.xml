@@ -20,6 +20,17 @@ android:fitsSystemWindows="true">
         android:orientation="horizontal"
         android:paddingBottom="16dp">
 
+        <!-- Nút quay lại bên trái -->
+        <ImageButton
+            android:id="@+id/btn_back_budget"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="4dp"
+            android:src="@drawable/icreturn"
+            android:scaleType="centerInside"
+            android:layout_marginRight="76dp"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

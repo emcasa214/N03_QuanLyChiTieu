@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,6 +53,7 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     private List<Budgets> budgetsList = new ArrayList<>();
     private List<Categories> categories = new ArrayList<>();
     private final Calendar calendar = Calendar.getInstance();
+    private ImageButton btn_back;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
 
@@ -93,6 +95,13 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
 
         // Set save button click listener
         btnSave.setOnClickListener(v -> saveBudget());
+
+        btn_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     private void initViews() {
@@ -105,6 +114,7 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
         rvBudgets = findViewById(R.id.rv_budgets);
         emptyView = findViewById(R.id.empty_view);
         bottomSheet = findViewById(R.id.bottom_sheet);
+        btn_back = findViewById(R.id.btn_back_budget);
     }
 
     private void setupBottomSheet() {

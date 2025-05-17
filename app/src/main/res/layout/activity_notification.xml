@@ -15,7 +15,19 @@
         android:orientation="horizontal"
         android:padding="16dp"
         android:background="@color/white"
+        android:gravity="center_vertical"
         android:elevation="4dp">
+
+        <!-- Nút quay lại bên trái -->
+        <ImageButton
+            android:id="@+id/btn_back_tb"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:padding="4dp"
+            android:src="@drawable/icreturn"
+            android:scaleType="centerInside"
+            android:layout_marginRight="110dp"
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
         <TextView
             android:id="@+id/testOin"
@@ -24,8 +36,7 @@
             android:text="Notification"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_weight="1"/>
+            android:textColor="@color/black" />
     </LinearLayout>
 
     <!-- Tab layout để phân loại thông báo -->
@@ -63,18 +74,6 @@
         android:paddingTop="8dp"
         android:paddingBottom="16dp"
         tools:listitem="@layout/item_notification" />
-
-    <!-- Nút đánh dấu tất cả đã đọc -->
-<!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
-<!--        android:id="@+id/fab_mark_all_read"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_gravity="end|bottom"-->
-<!--        android:layout_margin="16dp"-->
-<!--        android:src="@drawable/ic_check_all"-->
-<!--        android:contentDescription="Đánh dấu tất cả đã đọc"-->
-<!--        app:backgroundTint="#6200EE"-->
-<!--        app:tint="@color/white"/>-->
 
     <!-- Empty view khi không có thông báo -->
     <LinearLayout

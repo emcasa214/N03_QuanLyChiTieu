@@ -35,6 +35,7 @@ public class notification_user extends AppCompatActivity {
     private String currentUserId;
     private AuthenticationManager authManager;
     private TextView test_in;
+    private ImageButton btn_back;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,7 @@ public class notification_user extends AppCompatActivity {
         tabLayout = findViewById(R.id.tab_layout);
         emtyView = findViewById(R.id.empty_view);
         test_in = findViewById(R.id.testOin);
+        btn_back = findViewById(R.id.btn_back_tb);
 
         authManager = AuthenticationManager.getInstance(notification_user.this);
 
@@ -65,10 +67,18 @@ public class notification_user extends AppCompatActivity {
 
         // Thiết lập tablayout
         setupTabLayout();
+
+        btn_back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     private void setupRecyclerView() {
         adapter = new NotificationAdapter(this, notificationsList, notification -> {
+
             // xử lý khi click vào thông báo
             if (!notification.isIs_read()) {
                 notificationDAO.markAsRead(notification.getNotification_id());
