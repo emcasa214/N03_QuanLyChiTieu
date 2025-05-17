@@ -99,19 +99,55 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Helper methods
     private boolean checkCategoryExists(SQLiteDatabase db, String categoryId, String userId) {
+        if (categoryId == null || userId == null) {
+            Log.e(TAG, "checkCategoryExists: categoryId or userId is null");
+            return false;
+        }
         String query = "SELECT 1 FROM " + DatabaseContract.Categories.TABLE_NAME +
                 " WHERE " + DatabaseContract.Categories.COLUMN_CATEGORY_ID + " = ? AND " +
                 DatabaseContract.Categories.COLUMN_USER_ID + " = ? LIMIT 1";
         try (Cursor cursor = db.rawQuery(query, new String[]{categoryId, userId})) {
-            return cursor != null && cursor.moveToFirst();
+            boolean exists = cursor != null && cursor.moveToFirst();
+            Log.d(TAG, "checkCategoryExists: categoryId=" + categoryId + ", userId=" + userId + ", exists=" + exists);
+            return exists;
+        } catch (Exception e) {
+            Log.e(TAG, "checkCategoryExists error: " + e.getMessage());
+            return false;
         }
     }
 
     private boolean checkBudgetExists(SQLiteDatabase db, String budgetId) {
+        if (budgetId == null) {
+            Log.e(TAG, "checkBudgetExists: budgetId is null");
+            return false;
+        }
         String query = "SELECT 1 FROM " + DatabaseContract.Budgets.TABLE_NAME +
                 " WHERE " + DatabaseContract.Budgets.COLUMN_BUDGET_ID + " = ? LIMIT 1";
         try (Cursor cursor = db.rawQuery(query, new String[]{budgetId})) {
-            return cursor != null && cursor.moveToFirst();
+            boolean exists = cursor != null && cursor.moveToFirst();
+            Log.d(TAG, "checkBudgetExists: budgetId=" + budgetId + ", exists=" + exists);
+            return exists;
+        } catch (Exception e) {
+            Log.e(TAG, "checkBudgetExists error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean checkIncomeExists(SQLiteDatabase db, String incomeId, String userId) {
+        if (incomeId == null || userId == null) {
+            Log.e(TAG, "checkIncomeExists: incomeId or userId is null");
+            return false;
+        }
+        String query = "SELECT 1 FROM " + DatabaseContract.Incomes.TABLE_NAME +
+                " WHERE " + DatabaseContract.Incomes.COLUMN_INCOME_ID + " = ? AND " +
+                DatabaseContract.Incomes.COLUMN_USER_ID + " = ? LIMIT 1";
+        try (Cursor cursor = db.rawQuery(query, new String[]{incomeId, userId})) {
+            boolean exists = cursor != null && cursor.moveToFirst();
+            Log.d(TAG, "checkIncomeExists: incomeId=" + incomeId + ", userId=" + userId + ", exists=" + exists);
+            return exists;
+        } catch (Exception e) {
+            Log.e(TAG, "checkIncomeExists error: " + e.getMessage());
+            return false;
         }
     }
 
@@ -152,7 +188,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Category management
     public List<Category> getCategoriesByUserIdAndType(String userId, String type) {
         List<Category> categories = new ArrayList<>();
-        if (userId == null || userId.isEmpty() || type == null || type.isEmpty()) return categories;
+        if (userId == null || userId.isEmpty() || type == null || type.isEmpty()) {
+            Log.e(TAG, "getCategoriesByUserIdAndType: Invalid userId or type");
+            return categories;
+        }
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(DatabaseContract.Categories.TABLE_NAME, null,
                 DatabaseContract.Categories.COLUMN_USER_ID + " = ? AND " +
@@ -170,11 +209,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         if (cursor != null) cursor.close();
         db.close();
+        Log.d(TAG, "getCategoriesByUserIdAndType: userId=" + userId + ", type=" + type + ", count=" + categories.size());
         return categories;
     }
 
     public String getCategoryNameById(String categoryId) {
-        if (categoryId == null || categoryId.isEmpty()) return "Không xác định";
+        if (categoryId == null || categoryId.isEmpty()) {
+            Log.e(TAG, "getCategoryNameById: categoryId is null or empty");
+            return "Không xác định";
+        }
         SQLiteDatabase db = this.getReadableDatabase();
         String categoryName = "Không xác định";
         Cursor cursor = db.query(DatabaseContract.Categories.TABLE_NAME,
@@ -186,6 +229,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             cursor.close();
         }
         db.close();
+        Log.d(TAG, "getCategoryNameById: categoryId=" + categoryId + ", name=" + categoryName);
         return categoryName;
     }
 
@@ -250,9 +294,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new Handler(Looper.getMainLooper()).post(() -> callback.onError("User ID is missing"));
                 return;
             }
+            if (incomeId == null || incomeId.isEmpty()) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Income ID is missing"));
+                return;
+            }
             try {
                 double amountValue = Double.parseDouble(amount);
                 SQLiteDatabase db = this.getWritableDatabase();
+                if (!checkIncomeExists(db, incomeId, userId)) {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Thu nhập không tồn tại: " + incomeId));
+                    db.close();
+                    return;
+                }
                 if (!checkCategoryExists(db, categoryId, userId)) {
                     new Handler(Looper.getMainLooper()).post(() -> callback.onError("Danh mục không tồn tại cho user: " + categoryId));
                     db.close();
@@ -262,15 +315,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 contentValues.put("amount", amountValue);
                 contentValues.put("category_id", categoryId);
                 contentValues.put("description", description != null ? description : "");
-                contentValues.put("create_at", date);
+                contentValues.put("create_at", date != null ? date : "");
                 int result = db.update(DatabaseContract.Incomes.TABLE_NAME, contentValues,
                         "income_id = ? AND user_id = ?", new String[]{incomeId, userId});
                 db.close();
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    if (result > 0) callback.onSuccess();
-                    else callback.onError("Không thể cập nhật thu nhập");
+                    if (result > 0) {
+                        Log.d(TAG, "Income updated successfully: incomeId=" + incomeId);
+                        callback.onSuccess();
+                    } else {
+                        Log.e(TAG, "No rows updated for incomeId=" + incomeId);
+                        callback.onError("Không thể cập nhật thu nhập: Không tìm thấy bản ghi");
+                    }
                 });
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Invalid amount format: " + e.getMessage());
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Số tiền không hợp lệ: " + e.getMessage()));
             } catch (Exception e) {
+                Log.e(TAG, "Update income error: " + e.getMessage());
                 new Handler(Looper.getMainLooper()).post(() -> callback.onError("Lỗi: " + e.getMessage()));
             }
         });
@@ -318,7 +380,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Expense management
-    public void addExpenseAsync(String userId, String amount, String categoryId, String description, String date, SimpleCallback callback) {
+    public void addExpenseAsync(String userId, String amount, String categoryId, String description, String date, String budgetId, SimpleCallback callback) {
         Executors.newSingleThreadExecutor().execute(() -> {
             if (userId == null || userId.isEmpty()) {
                 new Handler(Looper.getMainLooper()).post(() -> callback.onError("User ID is missing"));
@@ -332,6 +394,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     db.close();
                     return;
                 }
+                if (!checkBudgetExists(db, budgetId)) {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Ngân sách không tồn tại: " + budgetId));
+                    db.close();
+                    return;
+                }
                 ContentValues contentValues = new ContentValues();
                 contentValues.put("expense_id", UUID.randomUUID().toString());
                 contentValues.put("user_id", userId);
@@ -339,7 +406,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 contentValues.put("category_id", categoryId);
                 contentValues.put("description", description != null ? description : "");
                 contentValues.put("create_at", date);
-                contentValues.put("budget_id", "bud1");
+                contentValues.put("budget_id", budgetId);
                 long result = db.insert(DatabaseContract.Expenses.TABLE_NAME, null, contentValues);
                 db.close();
                 new Handler(Looper.getMainLooper()).post(() -> {
@@ -347,11 +414,119 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     else callback.onError("Không thể thêm chi tiêu");
                 });
             } catch (NumberFormatException e) {
-                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Số tiền không hợp lệ: " + amount));
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Số tiền không hợp lệ: " + e.getMessage()));
             } catch (Exception e) {
                 new Handler(Looper.getMainLooper()).post(() -> callback.onError("Lỗi: " + e.getMessage()));
             }
         });
+    }
+
+    public void updateExpenseAsync(String expenseId, String userId, String amount, String categoryId, String description, String date, String budgetId, SimpleCallback callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            if (userId == null || userId.isEmpty()) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError("User ID is missing"));
+                return;
+            }
+            try {
+                double amountValue = Double.parseDouble(amount);
+                SQLiteDatabase db = this.getWritableDatabase();
+                if (!checkCategoryExists(db, categoryId, userId)) {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Danh mục không tồn tại cho user: " + categoryId));
+                    db.close();
+                    return;
+                }
+                if (!checkBudgetExists(db, budgetId)) {
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onError("Ngân sách không tồn tại: " + budgetId));
+                    db.close();
+                    return;
+                }
+                ContentValues contentValues = new ContentValues();
+                contentValues.put("amount", amountValue);
+                contentValues.put("category_id", categoryId);
+                contentValues.put("description", description != null ? description : "");
+                contentValues.put("create_at", date);
+                contentValues.put("budget_id", budgetId);
+                int result = db.update(DatabaseContract.Expenses.TABLE_NAME, contentValues,
+                        "expense_id = ? AND user_id = ?", new String[]{expenseId, userId});
+                db.close();
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result > 0) callback.onSuccess();
+                    else callback.onError("Không thể cập nhật chi tiêu");
+                });
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Lỗi: " + e.getMessage()));
+            }
+        });
+    }
+
+    public void deleteExpenseAsync(String expenseId, String userId, SimpleCallback callback) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            if (userId == null || userId.isEmpty()) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError("User ID is missing"));
+                return;
+            }
+            try {
+                SQLiteDatabase db = this.getWritableDatabase();
+                int result = db.delete(DatabaseContract.Expenses.TABLE_NAME,
+                        "expense_id = ? AND user_id = ?", new String[]{expenseId, userId});
+                db.close();
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result > 0) callback.onSuccess();
+                    else callback.onError("Không thể xóa chi tiêu");
+                });
+            } catch (Exception e) {
+                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Lỗi: " + e.getMessage()));
+            }
+        });
+    }
+
+    public List<Expense> getExpensesByUserId(String userId) {
+        List<Expense> list = new ArrayList<>();
+        if (userId == null || userId.isEmpty()) return list;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(DatabaseContract.Expenses.TABLE_NAME, null,
+                "user_id = ?", new String[]{userId}, null, null, "create_at DESC");
+        while (cursor != null && cursor.moveToNext()) {
+            String expense_id = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_EXPENSE_ID));
+            double amount = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_AMOUNT));
+            String description = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_DESCRIPTION));
+            String create_at = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_CREATE_AT));
+            String user_id = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_USER_ID));
+            String category_id = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_CATEGORY_ID));
+            String budget_id = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_BUDGET_ID));
+            list.add(new Expense(expense_id, amount, description, create_at, user_id, category_id, budget_id));
+        }
+        if (cursor != null) cursor.close();
+        db.close();
+        return list;
+    }
+
+    public static class Expense {
+        private String expenseId;
+        private double amount;
+        private String description;
+        private String createAt;
+        private String userId;
+        private String categoryId;
+        private String budgetId;
+
+        public Expense(String expenseId, double amount, String description, String createAt, String userId, String categoryId, String budgetId) {
+            this.expenseId = expenseId;
+            this.amount = amount;
+            this.description = description;
+            this.createAt = createAt;
+            this.userId = userId;
+            this.categoryId = categoryId;
+            this.budgetId = budgetId;
+        }
+
+        public String getExpenseId() { return expenseId; }
+        public double getAmount() { return amount; }
+        public String getDescription() { return description; }
+        public String getCreateAt() { return createAt; }
+        public String getUserId() { return userId; }
+        public String getCategoryId() { return categoryId; }
+        public String getBudgetId() { return budgetId; }
     }
 
     // User management

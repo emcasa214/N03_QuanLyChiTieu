@@ -28,12 +28,12 @@ import java.util.Map;
 public class UpdateIncomeActivity extends AppCompatActivity {
     private static final String TAG = "UpdateIncomeActivity";
     private TextInputEditText etAmount, etSource, etDate;
-    private TextInputLayout tilAmount, tilSource, tilDate, tilCategory;
+    private TextInputLayout tilAmount, tilSource, tilDate;
     private Button btnUpdate, btnCancel;
     private Spinner spinnerCategory;
     private DatabaseHelper databaseHelper;
-    private String userId, incomeId;
-    private Map<String, String> categoryNameToIdMap; // Ánh xạ giữa tên danh mục và categoryId
+    private String userId, incomeId, initialCategoryId;
+    private Map<String, String> categoryNameToIdMap;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -43,13 +43,14 @@ public class UpdateIncomeActivity extends AppCompatActivity {
 
         databaseHelper = new DatabaseHelper(this);
 
+        // Initialize UI components
         Toolbar toolbar = findViewById(R.id.toolbarUpdate);
         setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
 
         tilAmount = findViewById(R.id.tilAmount);
         tilSource = findViewById(R.id.tilSource);
         tilDate = findViewById(R.id.tilDate);
-        tilCategory = findViewById(R.id.tilCategory);
         etAmount = findViewById(R.id.etAmount);
         etSource = findViewById(R.id.etSource);
         etDate = findViewById(R.id.etDate);
@@ -57,11 +58,15 @@ public class UpdateIncomeActivity extends AppCompatActivity {
         btnUpdate = findViewById(R.id.btnUpdate);
         btnCancel = findViewById(R.id.btnCancel);
 
+        // Get Intent data
         userId = getIntent().getStringExtra("userId");
         incomeId = getIntent().getStringExtra("incomeId");
+        initialCategoryId = getIntent().getStringExtra("categoryId");
+        Log.d(TAG, "Intent data - userId: " + userId + ", incomeId: " + incomeId + ", categoryId: " + initialCategoryId);
 
-        if (userId == null || incomeId == null) {
-            Toast.makeText(this, "User ID or Income ID is missing", Toast.LENGTH_SHORT).show();
+        if (userId == null || userId.isEmpty() || incomeId == null || incomeId.isEmpty()) {
+            Log.e(TAG, "Missing userId or incomeId");
+            Toast.makeText(this, "Thiếu User ID hoặc Income ID", Toast.LENGTH_SHORT).show();
             setResult(RESULT_CANCELED);
             finish();
             return;
@@ -69,24 +74,35 @@ public class UpdateIncomeActivity extends AppCompatActivity {
 
         categoryNameToIdMap = new HashMap<>();
 
+        // Populate fields with Intent data
         etAmount.setText(getIntent().getStringExtra("amount"));
         etSource.setText(getIntent().getStringExtra("source"));
         etDate.setText(getIntent().getStringExtra("date"));
 
-        loadCategories(getIntent().getStringExtra("categoryId"));
+        // Load categories into spinner
+        if (!loadCategories(initialCategoryId)) {
+            Log.e(TAG, "Failed to load categories");
+            Toast.makeText(this, "Không thể tải danh mục thu nhập", Toast.LENGTH_LONG).show();
+            setResult(RESULT_CANCELED);
+            finish();
+            return;
+        }
 
+        // Set up date picker
         etDate.setOnClickListener(v -> showDatePicker());
 
+        // Cancel button
         btnCancel.setOnClickListener(v -> {
             setResult(RESULT_CANCELED);
             finish();
         });
 
+        // Update button
         btnUpdate.setOnClickListener(v -> {
+            // Clear previous errors
             tilAmount.setError(null);
             tilSource.setError(null);
             tilDate.setError(null);
-            tilCategory.setError(null);
 
             String amount = etAmount.getText().toString().trim();
             String source = etSource.getText().toString().trim();
@@ -95,6 +111,10 @@ public class UpdateIncomeActivity extends AppCompatActivity {
                     spinnerCategory.getSelectedItem().toString() : null;
             String categoryId = selectedCategoryName != null ? categoryNameToIdMap.get(selectedCategoryName) : null;
 
+            // Log input data
+            Log.d(TAG, "Update inputs - amount: " + amount + ", source: " + source + ", date: " + date + ", categoryId: " + categoryId);
+
+            // Validate inputs
             if (amount.isEmpty()) {
                 tilAmount.setError("Vui lòng nhập số tiền");
                 return;
@@ -108,7 +128,8 @@ public class UpdateIncomeActivity extends AppCompatActivity {
                 return;
             }
             if (categoryId == null || categoryId.isEmpty()) {
-                tilCategory.setError("Vui lòng chọn danh mục");
+                Log.e(TAG, "Category ID is null or empty. Map: " + categoryNameToIdMap);
+                Toast.makeText(this, "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -119,6 +140,7 @@ public class UpdateIncomeActivity extends AppCompatActivity {
                     return;
                 }
 
+                // Parse and format date
                 SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                 SimpleDateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
                 inputFormat.setLenient(false);
@@ -128,6 +150,7 @@ public class UpdateIncomeActivity extends AppCompatActivity {
                 btnUpdate.setEnabled(false);
                 btnCancel.setEnabled(false);
 
+                // Perform update
                 databaseHelper.updateIncomeAsync(
                         incomeId,
                         userId,
@@ -138,26 +161,26 @@ public class UpdateIncomeActivity extends AppCompatActivity {
                         new DatabaseHelper.SimpleCallback() {
                             @Override
                             public void onSuccess() {
-                                setResult(RESULT_OK);
                                 Toast.makeText(UpdateIncomeActivity.this, "Cập nhật thu nhập thành công", Toast.LENGTH_SHORT).show();
+                                setResult(RESULT_OK);
                                 finish();
                             }
 
                             @Override
                             public void onError(String errorMessage) {
-                                tilAmount.setError("Lỗi: " + errorMessage);
+                                Log.e(TAG, "Update failed: " + errorMessage);
+                                Toast.makeText(UpdateIncomeActivity.this, "Lỗi: " + errorMessage, Toast.LENGTH_LONG).show();
                                 btnUpdate.setEnabled(true);
                                 btnCancel.setEnabled(true);
-                                Log.e(TAG, "Error updating income: " + errorMessage);
                             }
                         }
                 );
             } catch (NumberFormatException e) {
+                Log.e(TAG, "Invalid amount format: " + e.getMessage());
                 tilAmount.setError("Số tiền phải là một số hợp lệ");
-                Log.e(TAG, "NumberFormatException: " + e.getMessage());
             } catch (java.text.ParseException e) {
+                Log.e(TAG, "Invalid date format: " + e.getMessage());
                 tilDate.setError("Định dạng ngày không hợp lệ (dd/MM/yyyy)");
-                Log.e(TAG, "ParseException: " + e.getMessage());
             }
         });
     }
@@ -181,16 +204,14 @@ public class UpdateIncomeActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    private void loadCategories(String selectedCategoryId) {
+    private boolean loadCategories(String selectedCategoryId) {
         List<String> categoryNames = new ArrayList<>();
         int selectedPosition = 0;
         try {
             List<DatabaseHelper.Category> categoryList = databaseHelper.getCategoriesByUserIdAndType(userId, "income");
             if (categoryList.isEmpty()) {
-                Toast.makeText(this, "Không có danh mục thu nhập.", Toast.LENGTH_LONG).show();
-                setResult(RESULT_CANCELED);
-                finish();
-                return;
+                Log.e(TAG, "No income categories found for userId: " + userId);
+                return false;
             }
             for (int i = 0; i < categoryList.size(); i++) {
                 DatabaseHelper.Category cat = categoryList.get(i);
@@ -200,15 +221,16 @@ public class UpdateIncomeActivity extends AppCompatActivity {
                     selectedPosition = i;
                 }
             }
+            Log.d(TAG, "Categories loaded: " + categoryNameToIdMap);
         } catch (Exception e) {
             Log.e(TAG, "Error loading categories: " + e.getMessage());
-            Toast.makeText(this, "Lỗi tải danh mục. Vui lòng thử lại.", Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryNames);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
         spinnerCategory.setSelection(selectedPosition);
+        return true;
     }
 }
