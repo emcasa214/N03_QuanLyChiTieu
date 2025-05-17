@@ -144,14 +144,14 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
             tvDescription = itemView.findViewById(R.id.tv_description);
             tvUsedAmount = itemView.findViewById(R.id.tv_used_amount);
             tvRemainingAmount = itemView.findViewById(R.id.tv_remaining_amount);
-            progressBar = itemView.findViewById(R.id.progress_bar);
+            progressBar = itemView.findViewById(R.id.progress_bar_bu);
         }
     }
 
     // Helper methods // Default Value
     private int getCategoryIcon(String categoryId) {
         // Return appropriate icon based on categoryId
-        return R.drawable.ic_category_food; // Default icon
+        return R.drawable.ic_cate_food; // Default icon
     }
 
     private String getCategoryName(String categoryId) {

@@ -12,6 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -26,6 +27,7 @@ public class AddIncomeActivity extends AppCompatActivity {
     private Button btnSave;
     private ImageButton btnBack;
     private DatabaseHelper databaseHelper;
+    private AuthenticationManager auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,7 @@ public class AddIncomeActivity extends AppCompatActivity {
         etDate = findViewById(R.id.etDate);
         btnSave = findViewById(R.id.btnSave);
         btnBack = findViewById(R.id.btnBack);
+        auth = AuthenticationManager.getInstance(this);
 
         if (savedInstanceState != null) {
             etAmount.setText(savedInstanceState.getString("amount"));
@@ -106,7 +109,7 @@ public class AddIncomeActivity extends AppCompatActivity {
                 java.util.Date parsedDate = inputFormat.parse(date);
                 String formattedDate = outputFormat.format(parsedDate);
 
-                String userId = "user1";
+                String userId = auth.getCurrentUser().getUser_id();
 
                 btnBack.setEnabled(false);
                 btnSave.setEnabled(false);

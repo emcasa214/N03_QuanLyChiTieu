@@ -106,7 +106,7 @@
                 </LinearLayout>
 
                 <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/progress_bar"
+                    android:id="@+id/progress_bar_bu"
                     android:layout_width="match_parent"
                     android:layout_height="8dp"
                     android:layout_marginTop="4dp"
