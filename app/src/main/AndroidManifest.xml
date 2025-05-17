@@ -39,7 +39,7 @@
         <activity android:name=".ui.income.UpdateIncomeActivity" />
         <activity android:name=".ui.expense.ViewExpenseActivity" />
         <activity android:name=".ui.expense.AddExpenseActivity" />
-<!--        <activity android:name=".ui.expense.UpdateExpenseActivity" />-->
+        <activity android:name=".ui.expense.UpdateExpenseActivity" />
         <activity android:name=".ui.sign.GetOtp" />
         <activity android:name=".ui.sign.VerifyOtp" />
         <activity android:name=".ui.sign.notification_user"/>

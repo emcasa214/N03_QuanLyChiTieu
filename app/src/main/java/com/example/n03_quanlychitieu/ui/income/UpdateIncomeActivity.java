@@ -14,6 +14,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Categories;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -208,16 +209,16 @@ public class UpdateIncomeActivity extends AppCompatActivity {
         List<String> categoryNames = new ArrayList<>();
         int selectedPosition = 0;
         try {
-            List<DatabaseHelper.Category> categoryList = databaseHelper.getCategoriesByUserIdAndType(userId, "income");
+            List<Categories> categoryList = databaseHelper.getCategoriesByUserIdAndType(userId, "income");
             if (categoryList.isEmpty()) {
                 Log.e(TAG, "No income categories found for userId: " + userId);
                 return false;
             }
             for (int i = 0; i < categoryList.size(); i++) {
-                DatabaseHelper.Category cat = categoryList.get(i);
+                Categories cat = categoryList.get(i);
                 categoryNames.add(cat.getName());
-                categoryNameToIdMap.put(cat.getName(), cat.getCategoryId());
-                if (cat.getCategoryId().equals(selectedCategoryId)) {
+                categoryNameToIdMap.put(cat.getName(), cat.getCategory_id());
+                if (cat.getCategory_id().equals(selectedCategoryId)) {
                     selectedPosition = i;
                 }
             }

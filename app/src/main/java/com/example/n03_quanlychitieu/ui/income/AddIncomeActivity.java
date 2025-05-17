@@ -16,6 +16,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Categories;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
 import com.example.n03_quanlychitieu.ui.sign.LogIn;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
@@ -99,7 +100,7 @@ public class AddIncomeActivity extends AppCompatActivity {
                     ", source=" + etSource.getText().toString() + ", date=" + etDate.getText().toString());
         }
 
-        loadCategories();
+        loadCategoriesIncome();
 
         etDate.setOnClickListener(v -> showDatePicker());
         Log.d(TAG, "Date picker listener set");
@@ -234,10 +235,10 @@ public class AddIncomeActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    private void loadCategories() {
+    private void loadCategoriesIncome() {
         List<String> categoryNames = new ArrayList<>();
         try {
-            List<DatabaseHelper.Category> categoryList = databaseHelper.getCategoriesByUserIdAndType(userId, "income");
+            List<Categories> categoryList = databaseHelper.getCategoriesByUserIdAndType(userId, "income");
             if (categoryList.isEmpty()) {
                 Toast.makeText(this, "Không có danh mục thu nhập. Vui lòng thêm danh mục tại AddCategoryActivity.", Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(this, AddCategoryActivity.class);
@@ -246,9 +247,9 @@ public class AddIncomeActivity extends AppCompatActivity {
                 finish();
                 return;
             }
-            for (DatabaseHelper.Category cat : categoryList) {
+            for (Categories cat : categoryList) {
                 categoryNames.add(cat.getName());
-                categoryNameToIdMap.put(cat.getName(), cat.getCategoryId());
+                categoryNameToIdMap.put(cat.getName(), cat.getCategory_id());
             }
         } catch (Exception e) {
             Log.e(TAG, "Error loading categories: " + e.getMessage());

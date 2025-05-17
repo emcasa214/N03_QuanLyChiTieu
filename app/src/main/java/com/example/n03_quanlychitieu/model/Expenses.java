@@ -76,6 +76,8 @@ public class Expenses {
         this.budget_id = budget_id;
     }
 
+    public String getExpenseId() { return expense_id; }
+
     @Override
     public String toString() {
         return "Expenses{" +

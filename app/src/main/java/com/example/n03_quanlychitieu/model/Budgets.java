@@ -22,6 +22,11 @@ public class Budgets {
         this.category_id = category_id;
     }
 
+    public Budgets(String id, String name) {
+        this.budget_id = id;
+        this.description = name;
+    }
+
     public String getBudget_id() {
         return budget_id;
     }
@@ -78,16 +83,21 @@ public class Budgets {
         this.category_id = category_id;
     }
 
+//    @Override
+//    public String  toString() {
+//        return "Budgets{" +
+//                "budget_id='" + budget_id + '\'' +
+//                ", amount=" + amount +
+//                ", start_date='" + start_date + '\'' +
+//                ", end_date='" + end_date + '\'' +
+//                ", description='" + description + '\'' +
+//                ", user_id='" + user_id + '\'' +
+//                ", category_id='" + category_id + '\'' +
+//                '}';
+//    }
+    // Thêm phương thức này
     @Override
-    public String  toString() {
-        return "Budgets{" +
-                "budget_id='" + budget_id + '\'' +
-                ", amount=" + amount +
-                ", start_date='" + start_date + '\'' +
-                ", end_date='" + end_date + '\'' +
-                ", description='" + description + '\'' +
-                ", user_id='" + user_id + '\'' +
-                ", category_id='" + category_id + '\'' +
-                '}';
+    public String toString() {
+        return description; // để Spinner hiển thị tên ngân sách
     }
 }

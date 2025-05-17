@@ -4,7 +4,7 @@ public class DatabaseContract {
     private DatabaseContract() {}
     public static class Database {
         public static final String DATABASE_NAME = "fin_manager.db";
-        public static final int DATABASE_VERSION = 3;
+        public static final int DATABASE_VERSION = 6;
     }
     public static class Users {
         public static final String TABLE_NAME = "users";
@@ -127,13 +127,13 @@ public class DatabaseContract {
                         COLUMN_CREATE_AT + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                         COLUMN_USER_ID + " TEXT NOT NULL, " +
                         COLUMN_CATEGORY_ID + " TEXT NOT NULL, " +
-                        COLUMN_BUDGET_ID + " TEXT NOT NULL, " +
+                        COLUMN_BUDGET_ID + " TEXT, " +
                         "FOREIGN KEY (" + COLUMN_USER_ID + ") REFERENCES " +
                         Users.TABLE_NAME + "(" + Users.COLUMN_USER_ID + ") ON DELETE CASCADE, " +
                         "FOREIGN KEY (" + COLUMN_CATEGORY_ID + ") REFERENCES " +
                         Categories.TABLE_NAME + "(" + Categories.COLUMN_CATEGORY_ID + ") ON DELETE CASCADE, " +
                         "FOREIGN KEY (" + COLUMN_BUDGET_ID + ") REFERENCES " +
-                        Budgets.TABLE_NAME + "(" + Budgets.COLUMN_BUDGET_ID + ") ON DELETE CASCADE" +
+                        Budgets.TABLE_NAME + "(" + Budgets.COLUMN_BUDGET_ID + ") ON DELETE SET NULL" +
                         ")";
     }
 }

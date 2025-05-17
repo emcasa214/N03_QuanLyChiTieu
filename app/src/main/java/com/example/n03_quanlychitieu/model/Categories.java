@@ -21,6 +21,10 @@ public class Categories implements Serializable {
         this.user_id = user_id;
     }
 
+    public Categories(String id, String name){
+        this.category_id = id;
+        this.name = name;
+    }
     public String getType() {
         return type;
     }
@@ -69,15 +73,19 @@ public class Categories implements Serializable {
     public void setUser_id(String user_id) {
         this.user_id = user_id;
     }
+//    @Override
+//    public String toString() {
+//        return "Categories{" +
+//                "category_id='" + category_id + '\'' +
+//                ", name='" + name + '\'' +
+//                ", icon='" + icon + '\'' +
+//                ", color='" + color + '\'' +
+//                ", type='" + type + '\'' +
+//                ", user_id='" + user_id + '\'' +
+//                '}';
+//    }
     @Override
     public String toString() {
-        return "Categories{" +
-                "category_id='" + category_id + '\'' +
-                ", name='" + name + '\'' +
-                ", icon='" + icon + '\'' +
-                ", color='" + color + '\'' +
-                ", type='" + type + '\'' +
-                ", user_id='" + user_id + '\'' +
-                '}';
+        return name; // để Spinner hiển thị tên ngân sách
     }
 }
