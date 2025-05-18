@@ -54,7 +54,6 @@ public class ReportTransaction extends AppCompatActivity {
     private Date currentStartDate, currentEndDate;
     private boolean showIncome = true; // Mặc định hiển thị thu nhập
     private ImageButton btn_back;
-
     private TextView kiemtra;
 
     @Override
@@ -108,6 +107,7 @@ public class ReportTransaction extends AppCompatActivity {
     // Tạo và lưu file PDF
     private void generatePDF() {
         String userId = authManager.getCurrentUser().getUser_id();
+
         // Lấy dữ liệu hiện tại
         double totalIncome = reportDAO.getTotalIncome(userId, currentStartDate, currentEndDate);
         double totalExpense = reportDAO.getTotalExpense(userId, currentStartDate, currentEndDate);
@@ -203,6 +203,7 @@ public class ReportTransaction extends AppCompatActivity {
     private void loadTodayData() {
         currentStartDate = reportDAO.getStartOfDay(new Date());
         currentEndDate = reportDAO.getEndOfDay(new Date());
+        kiemtra.setText(currentEndDate.toString());
         loadDataForDateRange();
     }
 
@@ -248,9 +249,12 @@ public class ReportTransaction extends AppCompatActivity {
         String userId = authManager.getCurrentUser().getUser_id();
 
         // Tính tổng thu, tổng chi
+        // Đang ko truy vấn được
         double totalIncome = reportDAO.getTotalIncome(userId, currentStartDate, currentEndDate);
         double totalExpense = reportDAO.getTotalExpense(userId, currentStartDate, currentEndDate);
         double balance = totalIncome - totalExpense;
+
+        kiemtra.setText(String.valueOf(totalIncome));
 
         // Hiển thị tổng quan
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
@@ -281,7 +285,6 @@ public class ReportTransaction extends AppCompatActivity {
         String userId = authManager.getCurrentUser().getUser_id();
         List<Expenses> expenses = reportDAO.getExpensesByTimeRange(userId, currentStartDate, currentEndDate);
 
-        kiemtra.setText(expenses.toString()); // test thử
 
         if (expenses.isEmpty()) {
             showEmptyView();
@@ -319,8 +322,8 @@ public class ReportTransaction extends AppCompatActivity {
 
     private void setupPieChart(double income, double expense) {
         List<PieEntry> entries = new ArrayList<>();
-        if (income > 0) entries.add(new PieEntry((float) income, "Thu nhập"));
-        if (expense > 0) entries.add(new PieEntry((float) expense, "Chi tiêu"));
+        if (income > 0) entries.add(new PieEntry((float) income, ""));
+        if (expense > 0) entries.add(new PieEntry((float) expense, ""));
 
         if (entries.isEmpty()) {
             chartSummary.setVisibility(View.GONE);

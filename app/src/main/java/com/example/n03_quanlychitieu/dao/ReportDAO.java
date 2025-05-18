@@ -9,11 +9,13 @@ import com.example.n03_quanlychitieu.model.Categories;
 import com.example.n03_quanlychitieu.model.Expenses;
 import com.example.n03_quanlychitieu.model.Incomes;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class ReportDAO {
@@ -27,16 +29,17 @@ public class ReportDAO {
 
     // Lấy tổng thu nhập theo khoảng thời gian
     public double getTotalIncome(String userId, Date startDate, Date endDate) {
+        // Định dạng ngày tháng theo đúng format trong database (dd-MM-yyyy)
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        String strStartDate = sdf.format(startDate);
+        String strEndDate = sdf.format(endDate);
+
         String query = "SELECT SUM(" + DatabaseContract.Incomes.COLUMN_AMOUNT + ") " +
                 "FROM " + DatabaseContract.Incomes.TABLE_NAME + " " +
                 "WHERE " + DatabaseContract.Incomes.COLUMN_USER_ID + " = ? " +
-                "AND datetime(" + DatabaseContract.Incomes.COLUMN_CREATE_AT + ") BETWEEN datetime(?) AND datetime(?)";
+                "AND " + DatabaseContract.Incomes.COLUMN_CREATE_AT + " BETWEEN ? AND ?";
 
-        String[] selectionArgs = {
-                userId,
-                String.valueOf(startDate.getTime()),
-                String.valueOf(endDate.getTime())
-        };
+        String[] selectionArgs = {userId, strStartDate, strEndDate};
 
         Cursor cursor = db.rawQuery(query, selectionArgs);
         double total = 0;
@@ -47,18 +50,20 @@ public class ReportDAO {
         return total;
     }
 
+
     // Lấy tổng chi tiêu theo khoảng thời gian
     public double getTotalExpense(String userId, Date startDate, Date endDate) {
+        // Định dạng ngày tháng theo đúng format trong database (yyyy-MM-dd)
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        String strStartDate = sdf.format(startDate);
+        String strEndDate = sdf.format(endDate);
+
         String query = "SELECT SUM(" + DatabaseContract.Expenses.COLUMN_AMOUNT + ") " +
                 "FROM " + DatabaseContract.Expenses.TABLE_NAME + " " +
                 "WHERE " + DatabaseContract.Expenses.COLUMN_USER_ID + " = ? " +
-                "AND datetime(" + DatabaseContract.Expenses.COLUMN_CREATE_AT + ") BETWEEN datetime(?) AND datetime(?)";
+                "AND " + DatabaseContract.Expenses.COLUMN_CREATE_AT + " BETWEEN ? AND ?";
 
-        String[] selectionArgs = {
-                userId,
-                String.valueOf(startDate.getTime()),
-                String.valueOf(endDate.getTime())
-        };
+        String[] selectionArgs = {userId, strStartDate, strEndDate};
 
         Cursor cursor = db.rawQuery(query, selectionArgs);
         double total = 0;
