@@ -2,12 +2,8 @@ package com.example.n03_quanlychitieu.utils;
 
 import android.content.Context;
 import android.content.Intent;
-import android.text.TextUtils;
 import android.util.Log;
 
-import androidx.activity.result.ActivityResultLauncher;
-
-import com.example.n03_quanlychitieu.R;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;

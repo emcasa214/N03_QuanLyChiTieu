@@ -50,7 +50,6 @@ public class ReportDAO {
         return total;
     }
 
-
     // Lấy tổng chi tiêu theo khoảng thời gian
     public double getTotalExpense(String userId, Date startDate, Date endDate) {
         // Định dạng ngày tháng theo đúng format trong database (yyyy-MM-dd)
@@ -76,13 +75,18 @@ public class ReportDAO {
 
     // Lấy danh sách thu nhập theo khoảng thời gian
     public List<Incomes> getIncomesByTimeRange(String userId, Date startDate, Date endDate) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        String strStartDate = sdf.format(startDate);
+        String strEndDate = sdf.format(endDate);
+
         List<Incomes> incomes = new ArrayList<>();
         String selection = DatabaseContract.Incomes.COLUMN_USER_ID + " = ? AND " +
-                "datetime(" + DatabaseContract.Incomes.COLUMN_CREATE_AT + ") BETWEEN datetime(?) AND datetime(?)";
+                DatabaseContract.Incomes.COLUMN_CREATE_AT + " BETWEEN ? AND ?";
+
         String[] selectionArgs = {
                 userId,
-                String.valueOf(startDate.getTime()),
-                String.valueOf(endDate.getTime())
+                strStartDate,
+                strEndDate
         };
 
         Cursor cursor = db.query(

@@ -4,12 +4,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
@@ -17,10 +21,13 @@ import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.ui.main.MainActivity;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 
+import com.example.n03_quanlychitieu.utils.GoogleAuthHelper;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.button.MaterialButton;
 
 
-public class LogIn extends AppCompatActivity {
+public class LogIn extends AppCompatActivity implements GoogleAuthHelper.GoogleSignInListener {
     private final DatabaseHelper db = new DatabaseHelper(this);
     private EditText etUsernameOrEmail, etPasswordLogin;
     private TextView tvForgotPassword;
@@ -28,6 +35,9 @@ public class LogIn extends AppCompatActivity {
     private ProgressBar progressBarLogin;
     private View overlay;
     private MaterialButton googleSignIn;
+    private GoogleAuthHelper googleAuthHelper;
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
+
     private static final int RC_SIGN_IN = 9001;
 
 
@@ -44,6 +54,26 @@ public class LogIn extends AppCompatActivity {
         overlay = findViewById(R.id.overlay_login);
         googleSignIn = findViewById(R.id.btn_google_signin);
 
+        // Kêt nối Google Auth Helper
+        googleAuthHelper = new GoogleAuthHelper(
+                this,
+                getString(R.string.default_web_client_id),
+                this
+        );
+
+        // Initialize Activity Result Launcher
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Intent data = result.getData();
+                        googleAuthHelper.handleSignInResult(
+                                GoogleSignIn.getSignedInAccountFromIntent(data)
+                        );
+                    }
+                }
+        );
+
         textSignup();
         tvForgotPassword.setOnClickListener(v -> ForgotPassword());
 
@@ -53,6 +83,12 @@ public class LogIn extends AppCompatActivity {
                 hideLoading();
                 loginUser();
             }, 2000);
+        });
+
+        // Set up Google Sign-In button
+        googleSignIn.setOnClickListener(v -> {
+            showLoading();
+            googleSignInLauncher.launch(googleAuthHelper.getSignInIntent());
         });
 
     }
@@ -91,6 +127,7 @@ public class LogIn extends AppCompatActivity {
         btnLogin.setEnabled(true);
         googleSignIn.setEnabled(true);
     }
+
     // Animation
     private void loginUser() {
         String usernameOrEmail = etUsernameOrEmail.getText().toString().trim();
@@ -146,6 +183,86 @@ public class LogIn extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(intent);
+            }
+        });
+    }
+
+    @Override
+    public void onSuccess(GoogleSignInAccount account) {
+        showLoading();
+    }
+
+    @Override
+    public void onFailure(String errorMessage) {
+        hideLoading();
+        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
+        Log.e("GoogleSignIn", "Error: " + errorMessage);
+    }
+
+    @Override
+    public void onFirebaseAuthSuccess(String uid, GoogleSignInAccount account) {
+// Handle after Firebase authentication succeeds
+        db.checkEmail(account.getEmail(), new DatabaseHelper.EmailCallback() {
+            @Override
+            public void onSuccess(boolean emailExists) {
+                if (emailExists) {
+                    handleExistingUser(account);
+                } else {
+                    // Option 1: Directly create account (like in SignUp)
+                    // createGoogleUser(uid, account);
+
+                    // Option 2: Show message to sign up first
+                    hideLoading();
+                    Toast.makeText(LogIn.this,
+                            "Account not found. Please sign up first.",
+                            Toast.LENGTH_SHORT).show();
+                    googleAuthHelper.signOut();
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                hideLoading();
+                Toast.makeText(LogIn.this, "Error: " + errorMessage, Toast.LENGTH_SHORT).show();
+            }
+
+            private void handleExistingUser(GoogleSignInAccount account) {
+                db.getUserByEmail(account.getEmail(), new DatabaseHelper.GetUserByEmailCallback() {
+                    @Override
+                    public void onUserLoaded(Users user) {
+                        hideLoading();
+                        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                            // User registered with Google -> Allow login
+                            AuthenticationManager.getInstance(LogIn.this).saveLoginState(user);
+                            startActivity(new Intent(LogIn.this, MainActivity.class));
+                            finish();
+                        } else {
+                            // User registered with email/password -> Ask to login with password
+                            hideLoading();
+                            Toast.makeText(LogIn.this,
+                                    "This email was registered with password. Please login with password.",
+                                    Toast.LENGTH_SHORT).show();
+                            googleAuthHelper.signOut();
+                        }
+                    }
+
+                    @Override
+                    public void onUserNotFound() {
+                        hideLoading();
+                        Toast.makeText(LogIn.this,
+                                "User not found. Please sign up first.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        hideLoading();
+                        Toast.makeText(LogIn.this,
+                                "System error: " + errorMessage,
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
             }
         });
     }

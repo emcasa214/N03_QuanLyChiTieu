@@ -54,11 +54,11 @@ public class SignUp extends AppCompatActivity implements GoogleAuthHelper.Google
         // Kêt nối Google Auth Helper
         googleAuthHelper = new GoogleAuthHelper(
                 this,
-                getString(R.string.google_client_id),
+                getString(R.string.default_web_client_id),
                 this
         );
 
-//         Initialize Activity Result Launcher
+//      Initialize Activity Result Launcher
         googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {

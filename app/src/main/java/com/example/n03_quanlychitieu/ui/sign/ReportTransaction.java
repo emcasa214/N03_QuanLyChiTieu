@@ -203,7 +203,7 @@ public class ReportTransaction extends AppCompatActivity {
     private void loadTodayData() {
         currentStartDate = reportDAO.getStartOfDay(new Date());
         currentEndDate = reportDAO.getEndOfDay(new Date());
-        kiemtra.setText(currentEndDate.toString());
+//        kiemtra.setText(currentEndDate.toString());
         loadDataForDateRange();
     }
 
@@ -254,7 +254,7 @@ public class ReportTransaction extends AppCompatActivity {
         double totalExpense = reportDAO.getTotalExpense(userId, currentStartDate, currentEndDate);
         double balance = totalIncome - totalExpense;
 
-        kiemtra.setText(String.valueOf(totalIncome));
+//        kiemtra.setText(String.valueOf(totalIncome));
 
         // Hiển thị tổng quan
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
@@ -272,6 +272,7 @@ public class ReportTransaction extends AppCompatActivity {
     private void loadIncomeData() {
         String userId = authManager.getCurrentUser().getUser_id();
         List<Incomes> incomes = reportDAO.getIncomesByTimeRange(userId, currentStartDate, currentEndDate);
+//        kiemtra.setText(incomes.toString());
 
         if (incomes.isEmpty()) {
             showEmptyView();
@@ -322,8 +323,8 @@ public class ReportTransaction extends AppCompatActivity {
 
     private void setupPieChart(double income, double expense) {
         List<PieEntry> entries = new ArrayList<>();
-        if (income > 0) entries.add(new PieEntry((float) income, ""));
-        if (expense > 0) entries.add(new PieEntry((float) expense, ""));
+        if (income > 0) entries.add(new PieEntry((float) income, "Income"));
+        if (expense > 0) entries.add(new PieEntry((float) expense, "Expense"));
 
         if (entries.isEmpty()) {
             chartSummary.setVisibility(View.GONE);

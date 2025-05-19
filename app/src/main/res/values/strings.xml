@@ -6,7 +6,6 @@
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
-    <string name="google_client_id">"654754451233-qqhiute9fpstlvt1ntg5htnrn6vbs1t1.apps.googleusercontent.com"</string>
     <string name="previous">Previous</string>
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
