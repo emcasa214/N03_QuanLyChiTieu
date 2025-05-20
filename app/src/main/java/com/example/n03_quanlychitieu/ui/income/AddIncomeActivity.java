@@ -15,8 +15,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.dao.BudgetDAO;
+import com.example.n03_quanlychitieu.dao.NotificationDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
+import com.example.n03_quanlychitieu.model.Budgets;
 import com.example.n03_quanlychitieu.model.Categories;
+import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.ui.category.AddCategoryActivity;
 import com.example.n03_quanlychitieu.ui.sign.LogIn;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
@@ -31,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 public class AddIncomeActivity extends AppCompatActivity {
     private static final String TAG = "AddIncomeActivity";
@@ -44,6 +49,7 @@ public class AddIncomeActivity extends AppCompatActivity {
     private AuthenticationManager auth;
     private String userId;
     private Map<String, String> categoryNameToIdMap; // Ánh xạ giữa tên danh mục và categoryId
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,6 +183,7 @@ public class AddIncomeActivity extends AppCompatActivity {
                                 resultIntent.putExtra("date", date);
                                 setResult(RESULT_OK, resultIntent);
                                 Toast.makeText(AddIncomeActivity.this, "Thêm thu nhập thành công", Toast.LENGTH_SHORT).show();
+
                                 finish();
                             }
 

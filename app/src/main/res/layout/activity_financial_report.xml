@@ -51,14 +51,6 @@
                 android:background="?attr/selectableItemBackground"
                 android:src="@drawable/id_download"
                 android:contentDescription="Tải báo cáo"/>
-
-            <ImageButton
-                android:id="@+id/btn_filter"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?attr/selectableItemBackground"
-                android:src="@drawable/ic_filter"
-                android:contentDescription="Lọc thống kê"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -198,62 +190,8 @@
     <com.github.mikephil.charting.charts.PieChart
         android:id="@+id/chart_summary"
         android:layout_width="match_parent"
-        android:layout_height="240dp"
+        android:layout_height="400dp"
         android:layout_marginTop="8dp"
         android:background="@color/white"/>
 
-    <!-- Tab layout phân loại -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tab_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/white"
-        app:tabIndicatorColor="#6200EE"
-        app:tabSelectedTextColor="#6200EE"
-        app:tabTextColor="#616161">
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Theo danh mục"/>
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Theo thời gian"/>
-    </com.google.android.material.tabs.TabLayout>
-
-    <!-- RecyclerView hiển thị chi tiết -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_transactions"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingTop="8dp"
-        android:paddingBottom="16dp"
-        tools:listitem="@layout/item_transaction"/>
-
-    <!-- Empty view -->
-    <LinearLayout
-        android:id="@+id/empty_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/ic_empty_transaction"
-            android:contentDescription="Không có giao dịch"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Không có giao dịch nào"
-            android:textColor="#9E9E9E"
-            android:textSize="16sp"/>
-    </LinearLayout>
 </LinearLayout>

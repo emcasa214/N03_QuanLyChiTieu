@@ -1,7 +1,7 @@
 package com.example.n03_quanlychitieu.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +16,7 @@ import com.example.n03_quanlychitieu.R;
 import com.example.n03_quanlychitieu.model.Categories;
 import com.example.n03_quanlychitieu.model.Expenses;
 import com.example.n03_quanlychitieu.model.Incomes;
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
+
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -52,9 +49,9 @@ public class ReportAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     // Các phương thức setData giữ nguyên như cũ
     public void setIncomes(List<Incomes> incomes) {
-        this.items.clear();
+        this.items = new ArrayList<>();
         this.items.addAll(incomes);
-        this.displayType = TYPE_INCOME;
+        this.displayType = TYPE_INCOME; // cái này ang lỗi
         notifyDataSetChanged();
     }
 
@@ -91,25 +88,45 @@ public class ReportAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         return new ReportViewHolder(view);
     }
 
+    // cái này đang sửa
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ReportViewHolder viewHolder = (ReportViewHolder) holder;
+        Object item = items.get(position);
 
-        switch (displayType) {
-            case TYPE_INCOME:
-                viewHolder.bindIncome((Incomes) items.get(position));
-                break;
-            case TYPE_EXPENSE:
-                viewHolder.bindExpense((Expenses) items.get(position));
-                break;
-            case TYPE_CATEGORY_STATS:
-                Map.Entry<Categories, Double> categoryEntry = (Map.Entry<Categories, Double>) items.get(position);
-                viewHolder.bindCategoryStats(categoryEntry.getKey(), categoryEntry.getValue());
-                break;
-            case TYPE_TIME_STATS:
-                Map.Entry<String, Double> timeEntry = (Map.Entry<String, Double>) items.get(position);
-                viewHolder.bindTimeStats(timeEntry.getKey(), timeEntry.getValue());
-                break;
+        try {
+            switch (displayType) {
+                case TYPE_INCOME:
+                    if (item instanceof Incomes) {
+                        viewHolder.bindIncome((Incomes) item);
+                    }
+                    break;
+                case TYPE_EXPENSE:
+                    if (item instanceof Expenses) {
+                        viewHolder.bindExpense((Expenses) item);
+                    }
+                    break;
+                case TYPE_CATEGORY_STATS:
+                    if (item instanceof Map.Entry) {
+                        Map.Entry<?, ?> entry = (Map.Entry<?, ?>) item;
+                        if (entry.getKey() instanceof Categories && entry.getValue() instanceof Double) {
+                            viewHolder.bindCategoryStats((Categories) entry.getKey(), (Double) entry.getValue());
+                        }
+                    }
+                    break;
+                case TYPE_TIME_STATS:
+                    if (item instanceof Map.Entry) {
+                        Map.Entry<?, ?> entry = (Map.Entry<?, ?>) item;
+                        if (entry.getKey() instanceof String && entry.getValue() instanceof Double) {
+                            viewHolder.bindTimeStats((String) entry.getKey(), (Double) entry.getValue());
+                        }
+                    }
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown display type: " + displayType);
+            }
+        } catch (ClassCastException e) {
+            Log.e("ReportAdapter", "Type casting error", e);
         }
     }
 

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.dao.BudgetDAO;
 import com.example.n03_quanlychitieu.dao.CategoryDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.model.Budgets;
@@ -31,6 +32,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
     private OnBudgetClickListener listener;
     private NumberFormat currencyFormat;
     private CategoryDAO categoryDAO;
+    private BudgetDAO budgetDAO;
 
     public interface OnBudgetClickListener {
         void onBudgetClick(Budgets budget);
@@ -38,12 +40,13 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         void onBudgetLongClick(Budgets budget);
     }
 
-    public BudgetAdapter(Context context, List<Budgets> budgetsList, CategoryDAO categoryDAO, OnBudgetClickListener listener) {
+    public BudgetAdapter(Context context, List<Budgets> budgetsList, CategoryDAO categoryDAO, BudgetDAO budgetDAO, OnBudgetClickListener listener) {
         this.context = context;
         this.budgetsList = budgetsList;
         this.listener = listener;
         this.currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         this.categoryDAO = categoryDAO;
+        this.budgetDAO = budgetDAO;
     }
 
     public void updateData(List<Budgets> newBudgets) {
@@ -122,7 +125,7 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         holder.ivCategoryIcon.setImageResource(getCategoryIcon(iconResId));
 
         // Set category name
-        holder.tvCategoryName.setText(getCategoryName(category.getName()));
+        holder.tvCategoryName.setText(budget.getDescription() != null ? budget.getDescription() : "");
 
         // Format amount
         holder.tvAmount.setText(currencyFormat.format(budget.getAmount()));
@@ -132,10 +135,10 @@ public class BudgetAdapter extends RecyclerView.Adapter<BudgetAdapter.BudgetView
         holder.tvTimeRange.setText(dateRange);
 
         // Set description
-        holder.tvDescription.setText(budget.getDescription() != null ? budget.getDescription() : "");
+        holder.tvDescription.setText(getCategoryName(category.getName()));
 
         // Calculate progress
-        double spentAmount = 30000; // Lấy từ DAO
+        double spentAmount = budgetDAO.getTotalSpentForBudget(budget.getBudget_id()); // Lấy từ DAO
         double progress = Math.min((spentAmount / budget.getAmount()) * 100, 100);
 
         holder.progressBar.setProgress((int) progress);

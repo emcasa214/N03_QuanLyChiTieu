@@ -1,8 +1,13 @@
 package com.example.n03_quanlychitieu.ui.sign;
 
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
+import android.media.MediaScannerConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -13,16 +18,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.n03_quanlychitieu.R;
-import com.example.n03_quanlychitieu.adapter.ReportAdapter;
 import com.example.n03_quanlychitieu.dao.ReportDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
-import com.example.n03_quanlychitieu.model.Categories;
-import com.example.n03_quanlychitieu.model.Expenses;
-import com.example.n03_quanlychitieu.model.Incomes;
+
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.example.n03_quanlychitieu.utils.PDFGenerator;
 import com.github.mikephil.charting.charts.PieChart;
@@ -31,6 +31,9 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.google.android.material.datepicker.MaterialDatePicker;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,18 +46,11 @@ import java.util.Map;
 public class ReportTransaction extends AppCompatActivity {
     private TextView tvTotalIncome, tvTotalExpense, tvBalance;
     private PieChart chartSummary;
-    private RecyclerView recyclerTransactions;
-    private View emptyView;
-
-    private ReportAdapter reportAdapter;
     private ReportDAO reportDAO;
     private AuthenticationManager authManager;
     private static final int REQUEST_WRITE_STORAGE = 112;
-    private PDFGenerator pdfGenerator;
     private Date currentStartDate, currentEndDate;
-    private boolean showIncome = true; // Mặc định hiển thị thu nhập
-    private ImageButton btn_back;
-    private TextView kiemtra;
+    private ImageButton btn_back, btn_download;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,15 +64,10 @@ public class ReportTransaction extends AppCompatActivity {
         authManager = AuthenticationManager.getInstance(this);
         DatabaseHelper dbHelper = new DatabaseHelper(this);
         reportDAO = new ReportDAO(dbHelper.getWritableDatabase());
-        pdfGenerator = new PDFGenerator(this);
         btn_back = findViewById(R.id.btn_back_report);
-        kiemtra = findViewById(R.id.test);
+        btn_download = findViewById(R.id.btn_download);
 
-        ImageButton btnDownload = findViewById(R.id.btn_download);
-        btnDownload.setOnClickListener(v -> checkPermissionAndGeneratePDF());
-
-        // Thiết lập RecyclerView
-        setupRecyclerView();
+        btn_download.setOnClickListener(v -> downloadReport());
 
         // Thiết lập sự kiện click
         setupClickListeners();
@@ -90,6 +81,81 @@ public class ReportTransaction extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    private void downloadReport() {
+        // lay du lieu tu cac TextView hien thi giao dien
+        String totalIncome = tvTotalIncome.getText().toString();
+        String totalExpense = tvTotalExpense.getText().toString();
+        String balance = tvBalance.getText().toString();
+
+        // Tao tren file voi dinh dang: BaoCao_ngay_thang_nam.pdf
+        SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy", Locale.getDefault());
+        String fileName = "BaoCao_" + sdf.format(new Date()) + ".pdf";
+
+        // Tao va luu file bao cao
+        createdPdfReport(fileName, totalIncome, totalExpense, balance);
+
+        // Thong bao cho nguoi dung
+        Toast.makeText(this, "Đã tải báo cáo thành công", Toast.LENGTH_SHORT).show();
+    }
+
+    private void createdPdfReport(String fileName, String income, String expense, String balance) {
+        // Tao doi tuong PdfDocument
+        PdfDocument document = new PdfDocument();
+
+        // Tao mot trang
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
+        PdfDocument.Page page = document.startPage(pageInfo);
+
+        // Lay Canvas de ve noi dung
+        Canvas canvas = page.getCanvas();
+        Paint paint = new Paint();
+
+        // Vẽ tiêu đề
+        paint.setTextSize(24f);
+        paint.setColor(Color.BLACK);
+        canvas.drawText("BÁO CÁO TÀI CHÍNH", 100, 100, paint);
+
+        // Vẽ thông tin tổng thu
+        paint.setTextSize(18f);
+        canvas.drawText("Tổng thu: " + income, 100, 150, paint);
+
+        // Vẽ thông tin tổng chi
+        canvas.drawText("Tổng chi: " + expense, 100, 200, paint);
+
+        // Vẽ thông tin số dư
+        canvas.drawText("Số dư: " + balance, 100, 250, paint);
+
+        // Vẽ ngày tạo báo cáo
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+        String currentDate = sdf.format(new Date());
+        canvas.drawText("Ngày tạo: " + currentDate, 100, 300, paint);
+
+        // Kết thúc trang
+        document.finishPage(page);
+
+        // Lưu file vào thư mục Downloads
+        File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File file = new File(downloadsDir, fileName);
+
+        try {
+            document.writeTo(new FileOutputStream(file));
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Lỗi khi lưu file", Toast.LENGTH_SHORT).show();
+        } finally {
+            document.close();
+        }
+
+        // Thông báo hệ thống về file mới
+        MediaScannerConnection.scanFile(
+                this,
+                new String[]{file.getAbsolutePath()},
+                null,
+                null
+        );
+
     }
 
     // Kiểm tra quyền trước khi tạo PDF
@@ -113,25 +179,11 @@ public class ReportTransaction extends AppCompatActivity {
         double totalExpense = reportDAO.getTotalExpense(userId, currentStartDate, currentEndDate);
         double balance = totalIncome - totalExpense;
 
-        List<Incomes> incomes = reportDAO.getIncomesByTimeRange(userId, currentStartDate, currentEndDate);
-        List<Expenses> expenses = reportDAO.getExpensesByTimeRange(userId, currentStartDate, currentEndDate);
-        Map<Categories, Double> categoryStats = reportDAO.getCategoryStats(userId, currentStartDate, currentEndDate, "expense");
-        Map<String, Double> timeStats = reportDAO.getTimeStats(userId, currentStartDate, currentEndDate, "expense", "day");
-
         // Tạo tên file với timestamp
         String fileName = "BaoCao_" + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date()) + ".pdf";
 
         // Gọi PDFGenerator để tạo file
-        pdfGenerator.generateFinancialReport(
-                fileName,
-                totalIncome,
-                totalExpense,
-                balance,
-                incomes,
-                expenses,
-                categoryStats,
-                timeStats
-        );
+
     }
 
     @Override
@@ -151,38 +203,9 @@ public class ReportTransaction extends AppCompatActivity {
         tvTotalExpense = findViewById(R.id.tv_total_expense);
         tvBalance = findViewById(R.id.tv_balance);
         chartSummary = findViewById(R.id.chart_summary);
-        recyclerTransactions = findViewById(R.id.recycler_transactions);
-        emptyView = findViewById(R.id.empty_view);
-
-        // Thiết lập TabLayout
-        com.google.android.material.tabs.TabLayout tabLayout = findViewById(R.id.tab_layout);
-        tabLayout.addOnTabSelectedListener(new com.google.android.material.tabs.TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(com.google.android.material.tabs.TabLayout.Tab tab) {
-                int position = tab.getPosition();
-                if (position == 0) {
-                    // Tab "Theo danh mục"
-                    loadCategoryStats();
-                } else {
-                    // Tab "Theo thời gian"
-                    loadTimeStats();
-                }
-            }
-
-            @Override public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
-            @Override public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {}
-        });
-    }
-
-    private void setupRecyclerView() {
-        reportAdapter = new ReportAdapter(this);
-        recyclerTransactions.setLayoutManager(new LinearLayoutManager(this));
-        recyclerTransactions.setAdapter(reportAdapter);
     }
 
     private void setupClickListeners() {
-        ImageButton btnFilter = findViewById(R.id.btn_filter);
-        btnFilter.setOnClickListener(v -> toggleIncomeExpense());
 
         // Các nút lọc thời gian
         findViewById(R.id.btn_today).setOnClickListener(v -> loadTodayData());
@@ -191,19 +214,10 @@ public class ReportTransaction extends AppCompatActivity {
         findViewById(R.id.btn_custom).setOnClickListener(v -> showCustomDateDialog());
     }
 
-    private void toggleIncomeExpense() {
-        showIncome = !showIncome;
-        if (showIncome) {
-            loadIncomeData();
-        } else {
-            loadExpenseData();
-        }
-    }
-
     private void loadTodayData() {
         currentStartDate = reportDAO.getStartOfDay(new Date());
         currentEndDate = reportDAO.getEndOfDay(new Date());
-//        kiemtra.setText(currentEndDate.toString());
+
         loadDataForDateRange();
     }
 
@@ -211,6 +225,7 @@ public class ReportTransaction extends AppCompatActivity {
         Date[] weekRange = reportDAO.getCurrentWeekRange();
         currentStartDate = weekRange[0];
         currentEndDate = weekRange[1];
+
         loadDataForDateRange();
     }
 
@@ -218,11 +233,11 @@ public class ReportTransaction extends AppCompatActivity {
         Date[] monthRange = reportDAO.getCurrentMonthRange();
         currentStartDate = monthRange[0];
         currentEndDate = monthRange[1];
+
         loadDataForDateRange();
     }
 
     private void showCustomDateDialog() {
-        // Tạo dialog bằng MaterialDatePicker
         MaterialDatePicker.Builder<Pair<Long, Long>> builder = MaterialDatePicker.Builder.dateRangePicker();
         builder.setTitleText("Chọn khoảng thời gian");
 
@@ -241,6 +256,7 @@ public class ReportTransaction extends AppCompatActivity {
         picker.addOnPositiveButtonClickListener(selection -> {
             currentStartDate = new Date(selection.first);
             currentEndDate = new Date(selection.second);
+
             loadDataForDateRange();
         });
     }
@@ -249,12 +265,10 @@ public class ReportTransaction extends AppCompatActivity {
         String userId = authManager.getCurrentUser().getUser_id();
 
         // Tính tổng thu, tổng chi
-        // Đang ko truy vấn được
         double totalIncome = reportDAO.getTotalIncome(userId, currentStartDate, currentEndDate);
         double totalExpense = reportDAO.getTotalExpense(userId, currentStartDate, currentEndDate);
         double balance = totalIncome - totalExpense;
 
-//        kiemtra.setText(String.valueOf(totalIncome));
 
         // Hiển thị tổng quan
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
@@ -265,60 +279,6 @@ public class ReportTransaction extends AppCompatActivity {
         // Vẽ biểu đồ
         setupPieChart(totalIncome, totalExpense);
 
-        // Load dữ liệu mặc định (thu nhập)
-        loadIncomeData();
-    }
-
-    private void loadIncomeData() {
-        String userId = authManager.getCurrentUser().getUser_id();
-        List<Incomes> incomes = reportDAO.getIncomesByTimeRange(userId, currentStartDate, currentEndDate);
-//        kiemtra.setText(incomes.toString());
-
-        if (incomes.isEmpty()) {
-            showEmptyView();
-        } else {
-            hideEmptyView();
-            reportAdapter.setIncomes(incomes);
-        }
-    }
-
-    private void loadExpenseData() {
-        String userId = authManager.getCurrentUser().getUser_id();
-        List<Expenses> expenses = reportDAO.getExpensesByTimeRange(userId, currentStartDate, currentEndDate);
-
-
-        if (expenses.isEmpty()) {
-            showEmptyView();
-        } else {
-            hideEmptyView();
-            reportAdapter.setExpenses(expenses);
-        }
-    }
-
-    private void loadCategoryStats() {
-        String userId = authManager.getCurrentUser().getUser_id();
-        String type = showIncome ? "income" : "expense";
-        Map<Categories, Double> stats = reportDAO.getCategoryStats(userId, currentStartDate, currentEndDate, type);
-
-        if (stats.isEmpty()) {
-            showEmptyView();
-        } else {
-            hideEmptyView();
-            reportAdapter.setCategoryStats(stats);
-        }
-    }
-
-    private void loadTimeStats() {
-        String userId = authManager.getCurrentUser().getUser_id();
-        String type = showIncome ? "income" : "expense";
-        Map<String, Double> stats = reportDAO.getTimeStats(userId, currentStartDate, currentEndDate, type, "day");
-
-        if (stats.isEmpty()) {
-            showEmptyView();
-        } else {
-            hideEmptyView();
-            reportAdapter.setTimeStats(stats);
-        }
     }
 
     private void setupPieChart(double income, double expense) {
@@ -348,13 +308,5 @@ public class ReportTransaction extends AppCompatActivity {
         chartSummary.invalidate();
     }
 
-    private void showEmptyView() {
-        recyclerTransactions.setVisibility(View.GONE);
-        emptyView.setVisibility(View.VISIBLE);
-    }
 
-    private void hideEmptyView() {
-        recyclerTransactions.setVisibility(View.VISIBLE);
-        emptyView.setVisibility(View.GONE);
-    }
 }

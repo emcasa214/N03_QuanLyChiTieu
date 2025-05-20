@@ -14,9 +14,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.n03_quanlychitieu.R;
+import com.example.n03_quanlychitieu.dao.BudgetDAO;
+import com.example.n03_quanlychitieu.dao.NotificationDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
 import com.example.n03_quanlychitieu.model.Budgets;
 import com.example.n03_quanlychitieu.model.Categories;
+import com.example.n03_quanlychitieu.model.Notifications;
 import com.example.n03_quanlychitieu.model.Users;
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
 import com.google.android.material.textfield.TextInputEditText;
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 public class AddExpenseActivity extends AppCompatActivity {
     private static final String TAG = "AddExpenseActivity";
@@ -36,7 +40,6 @@ public class AddExpenseActivity extends AppCompatActivity {
     private ImageButton btnBack;
     private Spinner spinnerCategory, spinnerBudget;
     private DatabaseHelper databaseHelper;
-
     Users currentUser;
     String userId;
 
@@ -164,6 +167,7 @@ public class AddExpenseActivity extends AppCompatActivity {
                                 resultIntent.putExtra("description", description);
                                 resultIntent.putExtra("budget", finalBudgetId);
                                 setResult(RESULT_OK, resultIntent);
+
                                 finish();
                             }
 
@@ -188,6 +192,7 @@ public class AddExpenseActivity extends AppCompatActivity {
         });
         Log.d(TAG, "Save button listener set");
     }
+
     private void loadBudgets(){
         List<Budgets> budgets = databaseHelper.getAllBudgets(userId);
         if (budgets.isEmpty()) {
