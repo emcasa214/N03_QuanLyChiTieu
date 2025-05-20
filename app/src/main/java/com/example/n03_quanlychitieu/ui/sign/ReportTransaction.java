@@ -93,7 +93,7 @@ public class ReportTransaction extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_yyyy", Locale.getDefault());
         String fileName = "BaoCao_" + sdf.format(new Date()) + ".pdf";
 
-        // Tao va luu file bao cao
+        // Tao va lưu file bao cao
         createdPdfReport(fileName, totalIncome, totalExpense, balance);
 
         // Thong bao cho nguoi dung
