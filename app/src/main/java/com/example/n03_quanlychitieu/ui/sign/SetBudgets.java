@@ -357,6 +357,7 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
             budgetsList.add(0, newBudget);
             budgetAdapter.notifyItemInserted(0);
             rvBudgets.smoothScrollToPosition(0);
+            budgetAdapter.updateData(budgetsList); // sửa ở đây
         } else {
             Toast.makeText(this, "Lỗi khi lưu giới hạn", Toast.LENGTH_SHORT).show();
         }
