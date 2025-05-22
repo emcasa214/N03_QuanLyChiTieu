@@ -160,7 +160,7 @@ public class AddIncomeActivity extends AppCompatActivity {
                 }
 
                 SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                SimpleDateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()); // Định dạng thành ngày-tháng-năm
+                SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()); // Định dạng thành ngày-tháng-năm
                 inputFormat.setLenient(false);
                 java.util.Date parsedDate = inputFormat.parse(date);
                 String formattedDate = outputFormat.format(parsedDate);
