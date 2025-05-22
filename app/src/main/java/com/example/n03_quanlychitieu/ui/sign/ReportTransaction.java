@@ -24,7 +24,6 @@ import com.example.n03_quanlychitieu.dao.ReportDAO;
 import com.example.n03_quanlychitieu.db.DatabaseHelper;
 
 import com.example.n03_quanlychitieu.utils.AuthenticationManager;
-import com.example.n03_quanlychitieu.utils.PDFGenerator;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -41,7 +40,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 public class ReportTransaction extends AppCompatActivity {
     private TextView tvTotalIncome, tvTotalExpense, tvBalance;
