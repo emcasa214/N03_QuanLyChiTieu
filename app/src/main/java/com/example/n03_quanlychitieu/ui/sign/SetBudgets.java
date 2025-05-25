@@ -1,5 +1,6 @@
 package com.example.n03_quanlychitieu.ui.sign;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
@@ -61,6 +62,7 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
     private NotificationDAO notificationDAO;
     private DatabaseHelper dbHelper;
     private Notifications tb;
+    private Budgets editingBudget;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
 
@@ -334,33 +336,65 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
             return;
         }
 
-        // Create new budget
-        Budgets newBudget = new Budgets();
-        newBudget.setBudget_id(generateBudgetId());
-        newBudget.setAmount(amount);
-        newBudget.setStart_date(startDate);
-        newBudget.setEnd_date(endDate);
-        newBudget.setDescription(description);
-        newBudget.setUser_id(currentUserId);
-        newBudget.setCategory_id(categoryId);
+        long result;
+        if (editingBudget != null) {
+            // Trường hợp cập nhật budget
+            editingBudget.setAmount(amount);
+            editingBudget.setStart_date(startDate);
+            editingBudget.setEnd_date(endDate);
+            editingBudget.setDescription(description);
+            editingBudget.setCategory_id(categoryId);
 
-        // Save to database
-        long result = budgetDAO.insert(newBudget);
-        if (result != -1) {
-            Toast.makeText(this, "Đã lưu giới hạn chi tiêu", Toast.LENGTH_SHORT).show();
-            checkBudgetStatusAndNotify(newBudget);
-
-            clearForm();
-
-            // Expand the bottom sheet to show the new budget
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            budgetsList.add(0, newBudget);
-            budgetAdapter.notifyItemInserted(0);
-            rvBudgets.smoothScrollToPosition(0);
-            budgetAdapter.updateData(budgetsList); // sửa ở đây
+            result = budgetDAO.update(editingBudget);
+            if (result != -1) {
+                Toast.makeText(this, "Đã cập nhật giới hạn chi tiêu", Toast.LENGTH_SHORT).show();
+                // Cập nhật lại danh sách
+                loadBudgets();
+                // Reset editingBudget
+                editingBudget = null;
+                // Đổi lại text của nút Save
+                btnSave.setText("Lưu");
+            } else {
+                Toast.makeText(this, "Lỗi khi cập nhật giới hạn", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Toast.makeText(this, "Lỗi khi lưu giới hạn", Toast.LENGTH_SHORT).show();
+            // Create new budget
+            Budgets newBudget = new Budgets();
+            newBudget.setBudget_id(generateBudgetId());
+            newBudget.setAmount(amount);
+            newBudget.setStart_date(startDate);
+            newBudget.setEnd_date(endDate);
+            newBudget.setDescription(description);
+            newBudget.setUser_id(currentUserId);
+            newBudget.setCategory_id(categoryId);
+
+            // Save to database
+            result = budgetDAO.insert(newBudget);
+            if (result != -1) {
+                Toast.makeText(this, "Đã lưu giới hạn chi tiêu", Toast.LENGTH_SHORT).show();
+                checkBudgetStatusAndNotify(newBudget);
+
+                clearForm();
+
+                // Expand the bottom sheet to show the new budget
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                budgetsList.add(0, newBudget);
+                budgetAdapter.notifyItemInserted(0);
+                rvBudgets.smoothScrollToPosition(0);
+                budgetAdapter.updateData(budgetsList); // sửa ở đây
+            } else {
+                Toast.makeText(this, "Lỗi khi lưu giới hạn", Toast.LENGTH_SHORT).show();
+            }
         }
+        // Clear form và cập nhật UI
+        clearForm();
+        loadBudgets();
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+    }
+
+    private void clearEditingState() {
+        editingBudget = null;
+        btnSave.setText("Lưu giới hạn");
     }
 
     private String generateBudgetId() {
@@ -373,12 +407,24 @@ public class SetBudgets extends AppCompatActivity implements BudgetAdapter.OnBud
         etStartDate.setText("");
         etEndDate.setText("");
         etDescription.setText("");
+        clearEditingState();
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBudgetClick(Budgets budget) {
+        editingBudget = budget;
         // Handle budget click (e.g., show edit dialog)
-        Toast.makeText(this, "Clicked: " + budget.getDescription(), Toast.LENGTH_SHORT).show();
+        actvCategory.setText(categoryDAO.getCategoryById(budget.getCategory_id()).getName());
+        etAmount.setText(Double.toString(budget.getAmount()));
+        etStartDate.setText(budget.getStart_date());
+        etEndDate.setText(budget.getEnd_date());
+        etDescription.setText(budget.getDescription());
+
+        btnSave.setText("Cập nhật");
+
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+
     }
 
     @Override
