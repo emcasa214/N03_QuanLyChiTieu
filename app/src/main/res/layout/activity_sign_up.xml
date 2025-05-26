@@ -15,7 +15,7 @@
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:orientation="vertical"
-        android:paddingTop="20dp">
+        android:paddingTop="60dp">
 
         <TextView
             android:layout_width="match_parent"

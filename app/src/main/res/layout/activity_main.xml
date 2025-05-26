@@ -48,7 +48,7 @@
                         android:textColor="@color/white"
                         android:textSize="10sp"
                         android:gravity="center"
-                        android:visibility="visible"/>
+                        android:visibility="gone"/>
                 </FrameLayout>
 
             </androidx.appcompat.widget.Toolbar>
