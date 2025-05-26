@@ -22,7 +22,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
-                android:title="My App"
+                android:title="N03_QuanLyChiTieu"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" >
 
                 <FrameLayout
@@ -65,7 +65,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="8dp">
 
                 <!-- Search and Action Button Row -->
                 <LinearLayout
@@ -73,14 +73,16 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="8dp">
 
                     <androidx.appcompat.widget.SearchView
                         android:id="@+id/search_view"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:queryHint="Search..." />
+                        android:queryHint="Search..."
+                        android:background="@android:color/white"
+                        android:padding="4dp"/>
 
                     <ImageButton
                         android:id="@+id/btnUser"
@@ -93,121 +95,141 @@
                         android:background="?attr/selectableItemBackgroundBorderless"/>
                 </LinearLayout>
 
-                <!-- Grid of Items: 3 columns -->
+                <!-- Grid of Items: 3 columns using CardView -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="3"
+                        android:padding="8dp">
+
+                        <!-- Column 1: Nguồn Chi -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center_horizontal"
+                            android:padding="4dp">
+
+                            <ImageButton
+                                android:id="@+id/btnIconCoin"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:scaleType="centerInside"
+                                android:padding="4dp"
+                                android:src="@drawable/iccoin"
+                                android:background="?attr/selectableItemBackgroundBorderless"/>
+                            <TextView
+                                android:id="@+id/txtSoTienChi"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@android:color/holo_red_dark"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Nguồn Chi"
+                                android:textSize="12sp"/>
+                        </LinearLayout>
+
+                        <!-- Column 2: Còn Lại -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center_horizontal"
+                            android:padding="4dp">
+
+                            <ImageButton
+                                android:id="@+id/btnIconWallet"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:scaleType="centerInside"
+                                android:padding="4dp"
+                                android:src="@drawable/icwallet"
+                                android:background="?attr/selectableItemBackgroundBorderless"/>
+                            <TextView
+                                android:id="@+id/txtSoTienCon"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="16sp"
+                                android:textStyle="bold"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Còn Lại"
+                                android:textSize="12sp"/>
+                        </LinearLayout>
+
+                        <!-- Column 3: Nguồn Thu -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center_horizontal"
+                            android:padding="4dp">
+
+                            <ImageButton
+                                android:id="@+id/btnIconBank"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:scaleType="centerInside"
+                                android:padding="4dp"
+                                android:src="@drawable/icbank"
+                                android:background="?attr/selectableItemBackgroundBorderless"/>
+                            <TextView
+                                android:id="@+id/txtSoTienThu"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@android:color/holo_green_dark"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Nguồn Thu"
+                                android:textSize="12sp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Section Title -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:weightSum="3"
-                    android:layout_marginBottom="16dp">
-
-                    <!-- Column 1 -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center_horizontal">
-
-                        <ImageButton
-                            android:id="@+id/btnIconCoin"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:scaleType="centerInside"
-                            android:padding="4dp"
-                            android:src="@drawable/iccoin"
-                            android:background="?attr/selectableItemBackgroundBorderless"/>
-                        <TextView
-                            android:id="@+id/txtSoTienChi"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="30k" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Nguồn Chi" />
-                    </LinearLayout>
-
-                    <!-- Column 2 -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center_horizontal">
-
-                        <ImageButton
-                            android:id="@+id/btnIconWallet"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:scaleType="centerInside"
-                            android:padding="4dp"
-                            android:src="@drawable/icwallet"
-                            android:background="?attr/selectableItemBackgroundBorderless"/>
-                        <TextView
-                            android:id="@+id/txtSoTienCon"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="50k" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Còn Lại" />
-                    </LinearLayout>
-
-                    <!-- Column 3 -->
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center_horizontal">
-
-                        <ImageButton
-                            android:id="@+id/btnIconBank"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:scaleType="centerInside"
-                            android:padding="4dp"
-                            android:src="@drawable/icbank"
-                            android:background="?attr/selectableItemBackgroundBorderless"/>
-                        <TextView
-                            android:id="@+id/txtSoTienThu"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="80k" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Nguồn Thu" />
-                    </LinearLayout>
-                </LinearLayout>
-
-
-                <!-- Section Title -->
-
-                <!-- List of items -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                    android:layout_marginBottom="8dp">
 
                     <TextView
                         android:id="@+id/section_title3"
                         android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_marginBottom="8dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
                         android:layout_weight="1"
                         android:text="Danh Sách Thu Chi"
-                        android:textSize="20sp" />
+                        android:textSize="16sp"
+                        android:textStyle="bold"/>
                 </LinearLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvThuChi"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-
-                <!-- Bottom Buttons Row -->
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp" />
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

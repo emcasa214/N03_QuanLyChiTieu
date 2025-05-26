@@ -863,4 +863,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return categories;
     }
 
+    // hiển thị tổng thu, chi , còn lại
+    // Trong class DatabaseHelper
+    public double getTotalExpense(String userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        double total = 0.0;
+        Cursor cursor = db.rawQuery(
+                "SELECT SUM(amount) FROM Expenses WHERE user_id = ?",
+                new String[]{userId});
+        if (cursor != null && cursor.moveToFirst()) {
+            total = cursor.getDouble(0) != 0 ? cursor.getDouble(0) : 0.0;
+        }
+        if (cursor != null) cursor.close();
+        db.close();
+        return total;
+    }
+
+    public double getTotalIncome(String userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        double total = 0.0;
+        Cursor cursor = db.rawQuery(
+                "SELECT SUM(amount) FROM Incomes WHERE user_id = ?",
+                new String[]{userId});
+        if (cursor != null && cursor.moveToFirst()) {
+            total = cursor.getDouble(0) != 0 ? cursor.getDouble(0) : 0.0;
+        }
+        if (cursor != null) cursor.close();
+        db.close();
+        return total;
+    }
+
 }

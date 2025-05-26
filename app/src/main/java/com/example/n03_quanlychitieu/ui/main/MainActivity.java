@@ -10,7 +10,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     Toolbar toolbar;
     NavigationView navView;
     RecyclerView rvThuChi;
-    ArrayList<String> listThuChistr;
+    ArrayList<ThuChiAdapter.ThuChiItem> listThuChi;
     ThuChiAdapter adapter;
     ImageButton bell;
     ImageButton btnUser;
@@ -64,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView badgeUnread;
     private NotificationDAO notificationDAO;
     private Notifications tb;
+    private TextView txtSoTienChi, txtSoTienCon, txtSoTienThu;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         // Khởi tạo giao diện và các thành phần khác
         khoitao();
         toggle();
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         setClickUser();
         setupSearch();
         navigateNotification();
-
+        updateFinancialData();
     }
 
     public void khoitao() {
@@ -118,15 +118,17 @@ public class MainActivity extends AppCompatActivity {
         btnUser = findViewById(R.id.btnUser);
         searchView = findViewById(R.id.search_view);
         badgeUnread = findViewById(R.id.badge_unread);
+        txtSoTienChi = findViewById(R.id.txtSoTienChi);
+        txtSoTienCon = findViewById(R.id.txtSoTienCon);
+        txtSoTienThu = findViewById(R.id.txtSoTienThu);
         setSupportActionBar(toolbar);
         tb = new Notifications(UUID.randomUUID().toString(), "Bạn đã đăng nhập vào ứng dụng!", false, null, "info", auth.getCurrentUser().getUser_id());
 
-        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        // Sử dụng instance dbHelper đã khởi tạo ở cấp class
         notificationDAO = new NotificationDAO(dbHelper.getWritableDatabase());
         notificationDAO.insert(tb);
     }
 
-    // Chuyển đến màn hình thông tin cá nhân
     public void setClickUser() {
         btnUser.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, UserProfileActivity.class);
@@ -135,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Thêm nút hamburger để mở/đóng drawer
     public void toggle() {
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
@@ -145,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
         toggle.syncState();
     }
 
-    // Xử lý sự kiện click trên NavigationView
     public void menuClick() {
         navView.setNavigationItemSelectedListener(item -> {
             drawerLayout.closeDrawer(GravityCompat.START);
@@ -155,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Xử lý điều hướng khi chọn mục trong NavigationView
     private void handleNavigation(int itemId) {
         Intent intent = null;
         if (itemId == R.id.nav_home) {
@@ -172,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
             intent = new Intent(this, ViewExpenseActivity.class);
         }
 
-        // Truyền userId cho tất cả các Intent
         if (intent != null && userId != null) {
             intent.putExtra("userId", userId);
             startActivity(intent);
@@ -183,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Cài đặt ô tìm kiếm
     public void setupSearch() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -207,105 +204,102 @@ public class MainActivity extends AppCompatActivity {
     private void searchListView(String keyword) {
         new Thread(() -> {
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            ArrayList<String> temp = new ArrayList<>();
+            ArrayList<ThuChiAdapter.ThuChiItem> temp = new ArrayList<>();
 
             // Tìm kiếm trong Incomes
             Cursor cIn = db.rawQuery(
                     "SELECT description, amount, create_at FROM Incomes WHERE description LIKE ? AND user_id = ?",
                     new String[]{"%" + keyword + "%", userId});
-            while (cIn.moveToNext()) {
-                String d = cIn.getString(0);
-                double a = cIn.getDouble(1);
-                String date = cIn.getString(2);
-                long amountInt = (long) a;
-                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            if (cIn != null) {
+                while (cIn.moveToNext()) {
+                    String description = cIn.getString(0);
+                    double amount = cIn.getDouble(1);
+                    String date = cIn.getString(2);
+                    long amountInt = (long) amount;
+                    temp.add(new ThuChiAdapter.ThuChiItem(date, description, String.format("%,d", amountInt) + " VND", "income"));
+                }
+                cIn.close();
             }
-            cIn.close();
 
             // Tìm kiếm trong Expenses
             Cursor cEx = db.rawQuery(
                     "SELECT description, amount, create_at FROM Expenses WHERE description LIKE ? AND user_id = ?",
                     new String[]{"%" + keyword + "%", userId});
-            while (cEx.moveToNext()) {
-                String d = cEx.getString(0);
-                double a = cEx.getDouble(1);
-                String date = cEx.getString(2);
-                long amountInt = (long) a;
-                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            if (cEx != null) {
+                while (cEx.moveToNext()) {
+                    String description = cEx.getString(0);
+                    double amount = cEx.getDouble(1);
+                    String date = cEx.getString(2);
+                    long amountInt = (long) amount;
+                    temp.add(new ThuChiAdapter.ThuChiItem(date, description, String.format("%,d", amountInt) + " VND", "expense"));
+                }
+                cEx.close();
             }
-            cEx.close();
 
             // Sắp xếp theo thời gian giảm dần
-            Collections.sort(temp, (s1, s2) -> {
-                String date1 = s1.split(" - ")[0];
-                String date2 = s2.split(" - ")[0];
-                return date2.compareTo(date1);
-            });
+            Collections.sort(temp, (item1, item2) -> item2.getDate().compareTo(item1.getDate()));
 
             runOnUiThread(() -> {
-                listThuChistr.clear();
-                listThuChistr.addAll(temp);
+                listThuChi.clear();
+                listThuChi.addAll(temp);
                 adapter.notifyDataSetChanged();
             });
         }).start();
     }
 
-    // Cài đặt RecyclerView
     private void setupRecyclerView() {
-        listThuChistr = new ArrayList<>();
-        adapter = new ThuChiAdapter(listThuChistr);
+        listThuChi = new ArrayList<>();
+        adapter = new ThuChiAdapter(listThuChi);
         rvThuChi.setLayoutManager(new LinearLayoutManager(this));
         rvThuChi.setAdapter(adapter);
     }
 
-    // Lấy danh sách thu chi
     private void takeListView() {
         new Thread(() -> {
             SQLiteDatabase db = dbHelper.getReadableDatabase();
-            ArrayList<String> temp = new ArrayList<>();
+            ArrayList<ThuChiAdapter.ThuChiItem> temp = new ArrayList<>();
 
             // Lấy dữ liệu từ Incomes
             Cursor cIn = db.rawQuery(
                     "SELECT description, amount, create_at FROM Incomes WHERE user_id = ?",
                     new String[]{userId});
-            while (cIn.moveToNext()) {
-                String d = cIn.getString(0);
-                double a = cIn.getDouble(1);
-                String date = cIn.getString(2);
-                long amountInt = (long) a;
-                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            if (cIn != null) {
+                while (cIn.moveToNext()) {
+                    String description = cIn.getString(0);
+                    double amount = cIn.getDouble(1);
+                    String date = cIn.getString(2);
+                    long amountInt = (long) amount;
+                    temp.add(new ThuChiAdapter.ThuChiItem(date, description, String.format("%,d", amountInt) + " VND", "income"));
+                }
+                cIn.close();
             }
-            cIn.close();
 
             // Lấy dữ liệu từ Expenses
             Cursor cEx = db.rawQuery(
                     "SELECT description, amount, create_at FROM Expenses WHERE user_id = ?",
                     new String[]{userId});
-            while (cEx.moveToNext()) {
-                String d = cEx.getString(0);
-                double a = cEx.getDouble(1);
-                String date = cEx.getString(2);
-                long amountInt = (long) a;
-                temp.add(date + " - " + d + " - " + String.format("%,d", amountInt) + " VND");
+            if (cEx != null) {
+                while (cEx.moveToNext()) {
+                    String description = cEx.getString(0);
+                    double amount = cEx.getDouble(1);
+                    String date = cEx.getString(2);
+                    long amountInt = (long) amount;
+                    temp.add(new ThuChiAdapter.ThuChiItem(date, description, String.format("%,d", amountInt) + " VND", "expense"));
+                }
+                cEx.close();
             }
-            cEx.close();
 
             // Sắp xếp theo thời gian giảm dần
-            Collections.sort(temp, (s1, s2) -> {
-                String date1 = s1.split(" - ")[0];
-                String date2 = s2.split(" - ")[0];
-                return date2.compareTo(date1);
-            });
+            Collections.sort(temp, (item1, item2) -> item2.getDate().compareTo(item1.getDate()));
 
             runOnUiThread(() -> {
-                listThuChistr.clear();
-                listThuChistr.addAll(temp);
+                listThuChi.clear();
+                listThuChi.addAll(temp);
                 adapter.notifyDataSetChanged();
             });
         }).start();
     }
 
-    // Xử lý nút Back
     private boolean doubleBackToExitPressedOnce = false;
 
     @Override
@@ -322,13 +316,11 @@ public class MainActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(() -> doubleBackToExitPressedOnce = false, 3000);
     }
 
-    // Điều hướng đến màn hình thông báo
     private void navigateNotification() {
         bell.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, notification_user.class);
             intent.putExtra("userId", userId);
             startActivity(intent);
-
         });
     }
 
@@ -346,5 +338,46 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updateUnreadBadge();
+        updateFinancialData();
+    }
+
+    private void updateFinancialData() {
+        new Thread(() -> {
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            double totalExpense;
+            double totalIncome;
+
+            // Tính tổng chi (expense)
+            Cursor cEx = db.rawQuery(
+                    "SELECT SUM(amount) FROM Expenses WHERE user_id = ?",
+                    new String[]{userId});
+            if (cEx != null && cEx.moveToFirst()) {
+                totalExpense = cEx.getDouble(0);
+            } else {
+                totalExpense = 0.0;
+            }
+            if (cEx != null) cEx.close();
+
+            // Tính tổng thu (income)
+            Cursor cIn = db.rawQuery(
+                    "SELECT SUM(amount) FROM Incomes WHERE user_id = ?",
+                    new String[]{userId});
+            if (cIn != null && cIn.moveToFirst()) {
+                totalIncome = cIn.getDouble(0);
+            } else {
+                totalIncome = 0.0;
+            }
+            if (cIn != null) cIn.close();
+
+            // Tính còn lại
+            double conLai = totalIncome - totalExpense;
+
+            // Cập nhật giao diện trên main thread
+            runOnUiThread(() -> {
+                txtSoTienChi.setText(String.format("%,d", (long) totalExpense) + " VND");
+                txtSoTienCon.setText(String.format("%,d", (long) conLai) + " VND");
+                txtSoTienThu.setText(String.format("%,d", (long) totalIncome) + " VND");
+            });
+        }).start();
     }
 }
