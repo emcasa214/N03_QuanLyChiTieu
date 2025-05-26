@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    tools:context=".ui.expense.AddExpenseActivity">
+    tools:context=".ui.expense.UpdateExpenseActivity">
 
     <!-- App Bar -->
     <com.google.android.material.appbar.AppBarLayout
@@ -21,16 +21,18 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="#673AB7"
-            app:title="Thêm Chi Tiêu"
+
             app:titleTextColor="@android:color/white"
-            app:navigationIcon="@drawable/ic_android_black_24dp" />
+            app:navigationIcon="@android:drawable/ic_menu_revert" />
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Nội dung form -->
     <LinearLayout
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:orientation="vertical"
+        android:layout_marginTop="16dp"
         app:layout_constraintTop_toBottomOf="@id/appBarLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -40,28 +42,31 @@
             android:id="@+id/tilDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ngày">
+            android:hint="Ngày"
+            android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="false"
-                android:padding="8dp" />
+                android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilAmount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Số tiền">
+            android:hint="Số tiền"
+            android:inputType="numberDecimal"
+            android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etAmount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
-                android:padding="8dp" />
+                android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Budget spinner -->
@@ -69,12 +74,9 @@
             android:id="@+id/tilBudget"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:hint="Ngân sách"
-            app:errorEnabled="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tilAmount">
+            android:layout_marginBottom="12dp"
+            app:errorEnabled="true">
 
             <Spinner
                 android:id="@+id/spinnerBudget"
@@ -83,16 +85,14 @@
                 android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Category spinner -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilCategory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Danh mục"
-            app:errorEnabled="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tilBudget">
+            android:hint="Danh mục"
+            android:layout_marginBottom="12dp"
+            app:errorEnabled="true">
 
             <Spinner
                 android:id="@+id/spinnerCategory"
@@ -105,29 +105,24 @@
             android:id="@+id/tilDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Mô tả">
+            android:hint="Mô tả"
+            android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="8dp" />
+                android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
-
 
         <Button
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="LƯU"
+            android:backgroundTint="#673AB7"
+            android:textColor="@android:color/white"
             android:layout_marginTop="16dp" />
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_revert"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="8dp" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

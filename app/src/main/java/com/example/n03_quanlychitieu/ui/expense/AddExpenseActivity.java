@@ -141,7 +141,7 @@ public class AddExpenseActivity extends AppCompatActivity {
                 }
 
                 SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                 inputFormat.setLenient(false);
                 java.util.Date parsedDate = inputFormat.parse(date);
                 String formattedDate = outputFormat.format(parsedDate);
@@ -161,10 +161,10 @@ public class AddExpenseActivity extends AppCompatActivity {
                             public void onSuccess() {
                                 Log.d(TAG, "addExpenseAsync: Success");
                                 Intent resultIntent = new Intent();
-                                resultIntent.putExtra("date", date);
                                 resultIntent.putExtra("amount", amount);
                                 resultIntent.putExtra("category", categoryName);
                                 resultIntent.putExtra("description", description);
+                                resultIntent.putExtra("date", date);
                                 resultIntent.putExtra("budget", finalBudgetId);
                                 setResult(RESULT_OK, resultIntent);
 

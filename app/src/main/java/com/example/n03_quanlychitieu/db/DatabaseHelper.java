@@ -364,46 +364,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return list;
     }
-//    public List<ViewExpenseActivity.Expense> getExpensesByUserId(String userId) {
-//        List<ViewExpenseActivity.Expense> list = new ArrayList<>();
-//        if (userId == null || userId.isEmpty()) return list;
-//
-//        SQLiteDatabase db = this.getReadableDatabase();
-//        Cursor cursor = db.query(
-//                DatabaseContract.Expenses.TABLE_NAME,
-//                null,
-//                DatabaseContract.Expenses.COLUMN_USER_ID + " = ?",
-//                new String[]{ userId },
-//                null,
-//                null,
-//                DatabaseContract.Expenses.COLUMN_CREATE_AT + " DESC"
-//        );
-//
-//        if (cursor != null) {
-//            while (cursor.moveToNext()) {
-//                String expenseId   = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_EXPENSE_ID));
-//                double amountValue = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_AMOUNT));
-//                String description = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_DESCRIPTION));
-//                String createAt    = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_CREATE_AT));
-//                String categoryId  = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_CATEGORY_ID));
-//                // If you need budgetId later:
-//                // String budgetId = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseContract.Expenses.COLUMN_BUDGET_ID));
-//
-//                // Note: ViewExpenseActivity.Expense constructor is
-//                // Expense(String expenseId, String amount, String categoryId, String description, String createAt)
-//                list.add(new ViewExpenseActivity.Expense(
-//                        expenseId,
-//                        String.valueOf(amountValue),
-//                        categoryId,
-//                        description,
-//                        createAt
-//                ));
-//            }
-//            cursor.close();
-//        }
-//        db.close();
-//        return list;
-//    }
 
 
     // Expense management
@@ -440,8 +400,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 // Thực hiện chèn dữ liệu
                 long result = db.insert(DatabaseContract.Expenses.TABLE_NAME, null, contentValues);
-
                 db.close();
+                // Xử lý kết quả chèn
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (result != -1) {
+                        Log.d(TAG, "addExpenseAsync: Chi tiêu được thêm thành công");
+                        callback.onSuccess();
+                    } else {
+                        Log.e(TAG, "addExpenseAsync: Lỗi khi thêm chi tiêu");
+                        callback.onError("Không thể thêm chi tiêu");
+                    }
+                });
             } catch (NumberFormatException e) {
                 new Handler(Looper.getMainLooper()).post(() -> callback.onError("Số tiền không hợp lệ: " + e.getMessage()));
             } catch (Exception e) {
@@ -449,12 +418,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         });
     }
-    public void updateExpenseAsync(String expenseId, String userId, String amount, String categoryId, String description, String date, String budgetId, SimpleCallback callback) {
+    public void updateExpenseAsync(String expenseId, String userId, String amount, String categoryId,
+                                   String description, String date, String budgetId, SimpleCallback callback) {
         Executors.newSingleThreadExecutor().execute(() -> {
-            // 1. Kiểm tra userId
+            // 1. Kiểm tra userId và expenseId
             if (userId == null || userId.isEmpty()) {
                 new Handler(Looper.getMainLooper()).post(() ->
                         callback.onError("User ID is missing")
+                );
+                return;
+            }
+            if (expenseId == null || expenseId.isEmpty()) {
+                new Handler(Looper.getMainLooper()).post(() ->
+                        callback.onError("Expense ID is missing")
                 );
                 return;
             }
@@ -473,58 +449,61 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             SQLiteDatabase db = this.getWritableDatabase();
             try {
                 // 3. Kiểm tra category tồn tại
+                Log.d("DB", "Checking category: categoryId=" + categoryId + ", userId=" + userId);
                 if (!checkCategoryExists(db, categoryId, userId)) {
                     new Handler(Looper.getMainLooper()).post(() ->
-                            callback.onError("Danh mục không tồn tại cho user: " + categoryId)
+                            callback.onError("Danh mục không tồn tại: " + categoryId)
                     );
                     return;
                 }
 
                 // 4. Chỉ kiểm tra budget nếu budgetId không null và khác "none"
                 String finalBudgetId = (budgetId != null && !"none".equals(budgetId)) ? budgetId : null;
-                if (finalBudgetId != null && !checkBudgetExists(db, finalBudgetId)) {
-                    new Handler(Looper.getMainLooper()).post(() ->
-                            callback.onError("Ngân sách không tồn tại: " + finalBudgetId)
-                    );
-                    return;
+                if (finalBudgetId != null) {
+                    Log.d("DB", "Checking budget: budgetId=" + finalBudgetId);
+                    if (!checkBudgetExists(db, finalBudgetId)) {
+                        new Handler(Looper.getMainLooper()).post(() ->
+                                callback.onError("Ngân sách không tồn tại: " + finalBudgetId)
+                        );
+                        return;
+                    }
                 }
 
                 // 5. Chuẩn bị ContentValues
                 ContentValues cv = new ContentValues();
-                cv.put("amount",       amountValue);
-                cv.put("category_id",  categoryId);
-                cv.put("description",  description != null ? description : "");
-                cv.put("create_at",    date);
+                cv.put("amount", amountValue);
+                cv.put("category_id", categoryId);
+                cv.put("description", description != null ? description : "");
+                cv.put("create_at", date);
                 if (finalBudgetId != null) {
                     cv.put("budget_id", finalBudgetId);
                 } else {
                     cv.putNull("budget_id");
                 }
-                Log.d("DB", "UPDATE expenses SET ... WHERE expense_id = "
-                        + expenseId + " AND user_id = " + userId);
+                Log.d("DB", "Preparing update: expenseId=" + expenseId + ", userId=" + userId);
 
                 // 6. Thực hiện update
                 int rows = db.update(
                         DatabaseContract.Expenses.TABLE_NAME,
                         cv,
                         "expense_id = ? AND user_id = ?",
-                        new String[]{ expenseId, userId }
+                        new String[]{expenseId, userId}
                 );
 
                 Log.d("DB", "Rows updated: " + rows);
-
 
                 // 7. Gọi callback trên main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     if (rows > 0) {
                         callback.onSuccess();
                     } else {
-                        callback.onError("Không thể cập nhật chi tiêu");
+                        callback.onError("Không tìm thấy chi tiêu để cập nhật");
                     }
                 });
             } catch (Exception e) {
+                Log.e("DB", "Error updating expense: " + e.getMessage());
                 new Handler(Looper.getMainLooper()).post(() ->
-                        callback.onError("Lỗi: " + e.getMessage())
+                        callback.onError("Lỗi khi cập nhật: " + e.getMessage())
                 );
             } finally {
                 db.close();

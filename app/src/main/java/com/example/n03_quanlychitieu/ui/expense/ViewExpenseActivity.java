@@ -101,14 +101,14 @@ public class ViewExpenseActivity extends AppCompatActivity {
                 Toast.makeText(this, "Vui lòng nhấn vào một mục để sửa", Toast.LENGTH_SHORT).show();
             } else {
                 Expense e = expenseList.get(selectedPosition);
-                Log.d(TAG, "expen = " + e.expenseId);
+                Log.d(TAG, "expense = " + e.expenseId);
                 Intent intent = new Intent(this, UpdateExpenseActivity.class);
                 intent.putExtra("userId",      userId);
-                intent.putExtra("expenseId",   e.expenseId);
-                intent.putExtra("amount",      e.amount);
+                intent.putExtra("expenseID",   e.expenseId);
+                intent.putExtra("date",        e.createAt);
+                intent.putExtra("amount",      String.valueOf(e.amount));
                 intent.putExtra("categoryId",  e.categoryId);
                 intent.putExtra("description", e.description);
-                intent.putExtra("date",        e.createAt);
                 startActivityForResult(intent, REQUEST_CODE_UPDATE_EXPENSE);
 
             }

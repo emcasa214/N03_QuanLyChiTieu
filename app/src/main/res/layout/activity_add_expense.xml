@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
+    android:background="#F5F5F5"
     tools:context=".ui.expense.AddExpenseActivity">
 
     <!-- App Bar -->
@@ -12,6 +13,7 @@
         android:id="@+id/appBarLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -21,9 +23,18 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="#673AB7"
-            app:title="Thêm Chi Tiêu"
-            app:titleTextColor="@android:color/white"
-            app:navigationIcon="@drawable/ic_android_black_24dp" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:padding="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_revert" />
+
+        </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Nội dung form -->
@@ -31,13 +42,17 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
-        app:layout_constraintStart_toStartOf="parent"
+        android:paddingTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+        app:layout_constraintVertical_bias="0.087">
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilDate"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Ngày">
@@ -47,13 +62,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="false"
-                android:padding="8dp" />
+                android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilAmount"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:hint="Số tiền">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -61,73 +78,71 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
-                android:padding="8dp" />
+                android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Budget spinner -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilBudget"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="Ngân sách"
-            app:errorEnabled="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tilAmount">
+            app:errorEnabled="true">
 
             <Spinner
                 android:id="@+id/spinnerBudget"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:backgroundTint="#673AB7"
                 android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilCategory"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Danh mục"
-            app:errorEnabled="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tilBudget">
+            android:hint="Danh mục"
+            app:errorEnabled="true">
 
             <Spinner
                 android:id="@+id/spinnerCategory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:backgroundTint="#673AB7"
                 android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilDescription"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:hint="Mô tả">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="8dp" />
+                android:padding="12dp" />
         </com.google.android.material.textfield.TextInputLayout>
-
 
         <Button
             android:id="@+id/btnSave"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="228dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#673AB7"
+            android:elevation="4dp"
+            android:layout_gravity="center"
             android:text="LƯU"
-            android:layout_marginTop="16dp" />
+            android:textColor="#FFFFFF"
+            android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_revert"
-            app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
