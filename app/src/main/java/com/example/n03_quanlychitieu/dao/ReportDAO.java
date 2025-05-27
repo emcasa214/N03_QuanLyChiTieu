@@ -29,15 +29,17 @@ public class ReportDAO {
 
     // Lấy tổng thu nhập theo khoảng thời gian
     public double getTotalIncome(String userId, Date startDate, Date endDate) {
-        // Định dạng ngày tháng theo đúng format trong database (dd-MM-yyyy)
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        // Định dạng ngày tháng theo đúng format trong database (yyyy-MM-dd)
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String strStartDate = sdf.format(startDate);
         String strEndDate = sdf.format(endDate);
 
         String query = "SELECT SUM(" + DatabaseContract.Incomes.COLUMN_AMOUNT + ") " +
                 "FROM " + DatabaseContract.Incomes.TABLE_NAME + " " +
                 "WHERE " + DatabaseContract.Incomes.COLUMN_USER_ID + " = ? " +
-                "AND " + DatabaseContract.Incomes.COLUMN_CREATE_AT + " BETWEEN ? AND ?";
+                "AND (substr(create_at, 7, 4) || '-' || " +
+                " substr(create_at, 4, 2) || '-' ||  " +
+                " substr(create_at, 1, 2)) " + " BETWEEN ? AND ?";
 
         String[] selectionArgs = {userId, strStartDate, strEndDate};
 
@@ -53,14 +55,16 @@ public class ReportDAO {
     // Lấy tổng chi tiêu theo khoảng thời gian
     public double getTotalExpense(String userId, Date startDate, Date endDate) {
         // Định dạng ngày tháng theo đúng format trong database (yyyy-MM-dd)
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         String strStartDate = sdf.format(startDate);
         String strEndDate = sdf.format(endDate);
 
         String query = "SELECT SUM(" + DatabaseContract.Expenses.COLUMN_AMOUNT + ") " +
                 "FROM " + DatabaseContract.Expenses.TABLE_NAME + " " +
                 "WHERE " + DatabaseContract.Expenses.COLUMN_USER_ID + " = ? " +
-                "AND " + DatabaseContract.Expenses.COLUMN_CREATE_AT + " BETWEEN ? AND ?";
+                "AND (substr(create_at, 7, 4) || '-' || " +
+                " substr(create_at, 4, 2) || '-' ||  " +
+                " substr(create_at, 1, 2)) " + " BETWEEN ? AND ?";
 
         String[] selectionArgs = {userId, strStartDate, strEndDate};
 

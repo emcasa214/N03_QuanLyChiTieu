@@ -271,6 +271,7 @@ public class ReportTransaction extends AppCompatActivity {
         // Hiển thị tổng quan
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         tvTotalIncome.setText(currencyFormat.format(totalIncome));
+//        tvTotalIncome.setText(currentEndDate.toString());
         tvTotalExpense.setText(currencyFormat.format(totalExpense));
         tvBalance.setText(currencyFormat.format(balance));
 
