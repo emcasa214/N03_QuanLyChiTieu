@@ -143,7 +143,7 @@ public class UpdateIncomeActivity extends AppCompatActivity {
 
                 // Parse and format date
                 SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                SimpleDateFormat outputFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                 inputFormat.setLenient(false);
                 java.util.Date parsedDate = inputFormat.parse(date);
                 String formattedDate = outputFormat.format(parsedDate);
